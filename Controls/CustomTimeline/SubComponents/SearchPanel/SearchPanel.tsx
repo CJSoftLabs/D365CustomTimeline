@@ -47,7 +47,7 @@ export class SearchPanel extends React.Component<SearchProps, SearchProps>{
                         <Text styles={ this.searchTextStyles }>Search</Text>
                     </Stack>
                     <Stack horizontal horizontalAlign='end'>
-                        <IconButton iconProps={{ iconName: 'RemoveFilter' }} title="Close" ariaLabel="Close" onClick={ this.CloseSearchPanelVisibility } />
+                        <IconButton iconProps={{ iconName: 'Cancel' }} title="Close" ariaLabel="Close" onClick={ this.CloseSearchPanelVisibility } />
                     </Stack>
                 </Stack>
                 <Stack horizontal>

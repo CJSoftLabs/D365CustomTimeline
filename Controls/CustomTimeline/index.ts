@@ -88,7 +88,10 @@ export class CustomTimeline implements ComponentFramework.StandardControl<IInput
                     EndDate: currentDate,
                     UseCalendarMonth: true,
                 }
-            }
+            },
+            ShowHideFooter: false,
+            NoRecordsText: "No Records available to display",
+            Events: []
         };
         if(this.rootControl === undefined)
         {

@@ -3,6 +3,11 @@ import { IChoiceGroupOption, ICommandBarItemProps, IDropdownOption } from "@flue
 export interface TimelineProps {
     SearchProps: SearchProps;
     FilterPanelVisible?: boolean;
+    ShowHideFooter?: boolean;
+    IsLoading?: boolean;
+    Events: EventCardProps[];
+    NoRecordsText: string;
+    RawData?: [];
 }
 
 export interface DateRangeProps {
@@ -37,12 +42,13 @@ export interface ConfigItem {
   }
   
 export interface EventCardProps {
+    key: string,
     personaImage?: string,
     header: ConfigItem[];
     body: ConfigItem[];
     footer: ConfigItem[];
     commandbarItems?: ICommandBarItemProps;
-    isFooterCollapsed?: boolean
+    FooterCollapsed?: boolean
 }
 
 export interface MonthGroup {

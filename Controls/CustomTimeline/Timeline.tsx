@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Stack, Text, SearchBox, IconButton, IContextualMenuProps, IStackTokens, IStackStyles } from '@fluentui/react';
+import { Stack, Text, SearchBox, IconButton, IContextualMenuProps, IStackTokens, IStackStyles, IIconProps, Spinner, Modal, SpinnerSize } from '@fluentui/react';
 import { EventCard } from './SubComponents/EventCard/EventCard';
 import { SearchPanel } from './SubComponents/SearchPanel/SearchPanel';
-import { TimelineProps } from './Interfaces/Common';
+import { EventCardProps, TimelineProps } from './Interfaces/Common';
 import { DateFilterPanel } from './SubComponents/DateFilterPanel/DateFilterPanel';
 
 export class Timeline extends React.Component<TimelineProps, TimelineProps> {
@@ -10,7 +10,11 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
         super(props);
         this.state = {
             SearchProps: this.props.SearchProps,
-            FilterPanelVisible: false
+            FilterPanelVisible: false,
+            ShowHideFooter: this.props.ShowHideFooter,
+            IsLoading: true,
+            NoRecordsText: this.props.NoRecordsText,
+            Events: this.props.Events,
         };
         
         // Bind the event handler to the class instance
@@ -21,6 +25,128 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
         this.UpdateSearchTextOnSearch = this.UpdateSearchTextOnSearch.bind(this);
         this.UpdateSearchTextOnBlur = this.UpdateSearchTextOnBlur.bind(this);
         this.UpdateSearchTextOnClear = this.UpdateSearchTextOnClear.bind(this);
+        this.ToggleFooterVisibility = this.ToggleFooterVisibility.bind(this);
+        this.GetTimelineRecords = this.GetTimelineRecords.bind(this);
+    }
+
+    componentDidMount() {
+        this.GetTimelineRecords();
+    }
+
+    async fetchData(primaryEntity: string, primaryKey: string, primaryValue: string) {
+        let returnData: [] = [];
+        await fetch('https://run.mocky.io/v3/195cc5ec-ef4d-4431-9eda-fc1bdba1664a')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok ' + response.statusText);
+            }
+            return response.json();
+          })
+          .then(data => {
+            returnData = data.filter((item: { [x: string]: string; }) => item[primaryKey] === primaryValue);
+          })
+          .catch(error => {
+            returnData = [];
+          });
+
+          return returnData;
+    }
+
+    GetTimelineRecords() {
+        this.setState((prevState) => ({
+            ...prevState,
+            Events: [],
+            IsLoading: true
+        }),
+        async () => {
+            try {
+                let Data = await this.fetchData('postactivity', 'accountid', '83883308-7ad5-ea11-a813-000d3a33f3b4');
+                let UpdatedEvents: EventCardProps[] = [];
+
+                Data.forEach((item, index) => {
+                    UpdatedEvents.push({
+                        key: `postactivity_Event${index + 1}`,
+                        personaImage: 'Database',
+                        FooterCollapsed: false,
+                        header: [{ type: 'Text', variant:'medium', content: ('Event Date: ' + item["createdon"]), sequence: 1, isBold: true }],
+                        body: [{ type: 'Text', content: item["postactivityname"], sequence: 1 }, { type: 'Text', content: item["postactivitytype"], sequence: 2 }],
+                        footer: [{ type: 'Text', content: 'Created On: ' + item["createdon"], sequence: 1 }, { type: 'Text', content: 'Modified On: ' + item["modifiedon"], sequence: 2 }]
+                    });
+                });
+
+                //await this.delay(500);
+                this.setState((prevState) => ({
+                    ...prevState,
+                    Events: UpdatedEvents,
+                    IsLoading: false,
+                    RawData: Data,
+                }));
+            } catch (error) {
+              console.error('Error fetching status:', error);
+              this.setState((prevState) => ({
+                ...prevState,
+                IsLoading: false, }));
+            }
+        });
+    }
+
+    FilterTimelineRecords() {
+        this.setState((prevState) => ({
+            ...prevState,
+            Events: [],
+            IsLoading: true
+        }),
+        async() => {
+            try {
+                let UpdatedEvents: EventCardProps[] = [{
+                    key: 'Event1',
+                    personaImage: 'TriggerAuto',
+                    FooterCollapsed: false,
+                    header: [{ type: 'Text', variant:'medium', content: 'Event Date: 31/07/2004 12:50:31 AM', sequence: 1, isBold: true }],
+                    body: [{ type: 'Text', content: 'neque duis bibendum morbi non', sequence: 1 }, { type: 'Text', content: 'Type1', sequence: 2 }],
+                    footer: [{ type: 'Text', content: 'Created On: 31/07/2004 12:50:31 AM', sequence: 1 }, { type: 'Text', content: 'Modified On: 31/07/2004 12:50:31 AM', sequence: 2 }]
+                },
+                {
+                    key: 'Event2',
+                    personaImage: 'Stack',
+                    FooterCollapsed: false,
+                    header: [{ type: 'Text', variant:'medium', content: 'Event Date: 13/08/2004 05:11:04 PM', sequence: 1, isBold: true }],
+                    body: [{ type: 'Text', content: 'neque duis bibendum morbi non', sequence: 1 }, { type: 'Text', content: 'Type1', sequence: 2 }],
+                    footer: [{ type: 'Text', content: 'Created On: 13/08/2004 05:11:04 PM', sequence: 1 }, { type: 'Text', content: 'Modified On: 13/08/2004 05:11:04 PM', sequence: 2 } ]
+                },
+                {
+                    key: 'Event3',
+                    personaImage: 'SaveAll',
+                    FooterCollapsed: false,
+                    header: [{ type: 'Text', variant:'medium', content: 'Event Date: 31/07/2004 12:50:31 AM', sequence: 1, isBold: true }],
+                    body: [{ type: 'Text', content: 'neque duis bibendum morbi non', sequence: 1 }, { type: 'Text', content: 'Type1', sequence: 2 }],
+                    footer: [ { type: 'Text', content: 'Created On: 31/07/2004 12:50:31 AM', sequence: 1 }, { type: 'Text', content: 'Modified On: 31/07/2004 12:50:31 AM', sequence: 2 } ]
+                },
+                {
+                    key: 'Event4',
+                    personaImage: 'Database',
+                    FooterCollapsed: false,
+                    header: [{ type: 'Text', variant:'medium', content: 'Event Date: 31/07/2004 12:50:31 AM', sequence: 1, isBold: true }],
+                    body: [{ type: 'Text', content: 'neque duis bibendum morbi non', sequence: 1 }, { type: 'Text', content: 'Type1', sequence: 2 }],
+                    footer: [{ type: 'Text', content: 'Created On: 31/07/2004 12:50:31 AM', sequence: 1 }, { type: 'Text', content: 'Modified On: 31/07/2004 12:50:31 AM', sequence: 2 }]
+                }];
+                await this.delay(500);
+                this.setState((prevState) => ({
+                    ...prevState,
+                    Events: UpdatedEvents,
+                    IsLoading: false,
+                  }));
+            } catch (error) {
+              console.error('Error fetching status:', error);
+                this.setState((prevState) => ({
+                    ...prevState,
+                    IsLoading: false, }));
+            }
+        });
+    }
+
+    delay = (ms: number): Promise<void> => {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     sortMenuProps: IContextualMenuProps = {
@@ -37,10 +163,12 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
           },
         ],
         directionalHintFixed: true,
-      };
+    }
     
     // Define tokens for spacing
     parentStackTokens: IStackTokens = { childrenGap: 10, padding: 20 };
+    CollapsedIcon: IIconProps = { iconName: 'PaddingBottom' };
+    ExpandedIcon: IIconProps = { iconName: 'PaddingTop' };
 
     // Define styles for setting css attributes
     timelineStackStyles: IStackStyles = { root: { padding: '10px', height: '100%', overflowY: 'auto' } };
@@ -52,6 +180,20 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
     render() {
         return (
             <Stack styles={this.timelineStackStyles}>
+                <Modal
+                    isModeless={false}
+                    isOpen={this.state.IsLoading}
+                >
+                    <Stack
+                        horizontalAlign="center"
+                        verticalAlign="center"
+                        verticalFill
+                        styles={{ root: { height: '200px', width: '350px' } }}
+                    >
+                        <Spinner size={SpinnerSize.large} />
+                        <Text>Loading ...</Text>
+                    </Stack>
+                </Modal>
                 <Stack tokens={this.parentStackTokens} grow styles={ this.parentStackStyles }>
                     <Stack horizontal>
                         <Stack horizontal grow verticalAlign='center'>
@@ -60,9 +202,9 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                         </Stack>
                         <Stack horizontal horizontalAlign='end'>
                             <IconButton iconProps={{ iconName: 'FilterSettings' }} title="Search Settings" ariaLabel="Search Settings" onClick={this.ToggleSearchPanelVisibility} />
-                            <IconButton iconProps={{ iconName: 'Refresh' }} title="Refresh" ariaLabel="Refresh" />
-                            <IconButton iconProps={{ iconName: 'PaddingBottom' }} title='Expand' aria-label='Expand' />
-                            <IconButton iconProps={{ iconName: 'PaddingTop' }} title='Collapse' aria-label='Collapse' />
+                            <IconButton iconProps={{ iconName: 'Refresh' }} title="Refresh" ariaLabel="Refresh" onClick={ this.GetTimelineRecords } />
+                            <IconButton iconProps={ this.state.ShowHideFooter ? this.CollapsedIcon : this.ExpandedIcon } title={ this.state.ShowHideFooter ? 'Expand' : 'Collapse' } 
+                            aria-label={ this.state.ShowHideFooter ? 'Expand' : 'Collapse' } onClick={ this.ToggleFooterVisibility } />
                             <IconButton iconProps={{ iconName: 'Sort' }} title="Sort" ariaLabel="Sort" menuProps={this.sortMenuProps} />
                         </Stack>
                     </Stack>
@@ -81,20 +223,13 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                         {this.state.FilterPanelVisible && (<Stack styles={ this.filterStackStyles }>
                             <DateFilterPanel StartDate={ this.state.SearchProps.DateRange.StartDate } EndDate={ this.state.SearchProps.DateRange.EndDate } UseCalendarMonth={ this.state.SearchProps.DateRange.UseCalendarMonth }></DateFilterPanel>
                         </Stack>)}
-                        <Stack tokens={{ childrenGap: 2 }} grow styles={ { root: { border: '1px solid #ccc', borderRadius: '4px', padding: '15px', overflowY: 'auto' } }}>
-                            {/* <EventCard personaImage={''} header={[{ type: 'Text', content: 'Event Date: ', sequence: 1, isBold: true }, { type: 'Space', sequence: 2 }, { type: 'Text', content: '31/07/2004 12:50:31 AM', sequence: 3, isBold: true }]} body={[ { type: 'Text', content: 'neque duis bibendum morbi non', sequence: 1 }, { type: 'Text', content: 'Type1', sequence: 2 } ]} footer={[ { type: 'Text', content: 'Created On: ', sequence: 1 }, { type: 'Space', sequence: 2 }, { type: 'Text', content: '31/07/2004 12:50:31 AM', sequence: 3 }, { type: 'NewLine', sequence: 4 }, { type: 'Text', content: 'Modified On: ', sequence: 5 }, { type: 'Space', sequence: 6 }, { type: 'Text', content: '31/07/2004 12:50:31 AM', sequence: 7 } ]}></EventCard> */}
-
-                            <EventCard personaImage='TriggerAuto' header={[{ type: 'Text', variant:'medium', content: 'Event Date: 31/07/2004 12:50:31 AM', sequence: 1, isBold: true }]} body={[ { type: 'Text', content: 'neque duis bibendum morbi non', sequence: 1 }, { type: 'Text', content: 'Type1', sequence: 2 } ]} footer={[ { type: 'Text', content: 'Created On: 31/07/2004 12:50:31 AM', sequence: 1 }, { type: 'Text', content: 'Modified On: 31/07/2004 12:50:31 AM', sequence: 2 } ]}></EventCard>
-                            <EventCard personaImage='Stack' header={[{ type: 'Text', variant:'medium', content: 'Event Date: 13/08/2004 05:11:04 PM', sequence: 1, isBold: true }]} body={[ { type: 'Text', content: 'neque duis bibendum morbi non', sequence: 1 }, { type: 'Text', content: 'Type1', sequence: 2 } ]} footer={[ { type: 'Text', content: 'Created On: 13/08/2004 05:11:04 PM', sequence: 1 }, { type: 'Text', content: 'Modified On: 13/08/2004 05:11:04 PM', sequence: 2 } ]}></EventCard>
-                            <EventCard personaImage='SaveAll' header={[{ type: 'Text', variant:'medium', content: 'Event Date: 31/07/2004 12:50:31 AM', sequence: 1, isBold: true }]} body={[ { type: 'Text', content: 'neque duis bibendum morbi non', sequence: 1 }, { type: 'Text', content: 'Type1', sequence: 2 } ]} footer={[ { type: 'Text', content: 'Created On: 31/07/2004 12:50:31 AM', sequence: 1 }, { type: 'Text', content: 'Modified On: 31/07/2004 12:50:31 AM', sequence: 2 } ]}></EventCard>
-                            <EventCard personaImage='Database' header={[{ type: 'Text', variant:'medium', content: 'Event Date: 31/07/2004 12:50:31 AM', sequence: 1, isBold: true }]} body={[ { type: 'Text', content: 'neque duis bibendum morbi non', sequence: 1 }, { type: 'Text', content: 'Type1', sequence: 2 } ]} footer={[ { type: 'Text', content: 'Created On: 31/07/2004 12:50:31 AM', sequence: 1 }, { type: 'Text', content: 'Modified On: 31/07/2004 12:50:31 AM', sequence: 2 } ]}></EventCard>
-
-                            {/*
-                            <EventCard date='31/07/2004 12:50:31 AM' description='neque duis bibendum morbi non' type='Type1' createdOn='31/07/2004 12:50:31 AM' modifiedOn='31/07/2004 12:50:31 AM'></EventCard>
-                            <EventCard date='13/08/2004 05:11:04 PM' description='massa quis augue luctus tincidunt nulla mollis molestie lorem' type='Type2' createdOn='13/08/2004 05:11:04 PM' modifiedOn='13/08/2004 05:11:04 PM'></EventCard>
-                            <EventCard date='29/08/2004 05:38:07 PM' description='in porttitor pede justo eu massa' type='Type4' createdOn='29/08/2004 05:38:07 PM' modifiedOn='29/08/2004 05:38:07 PM'></EventCard>
-                            <EventCard date='29/08/2004 05:38:07 PM' description='in porttitor pede justo eu massa' type='Type4' createdOn='29/08/2004 05:38:07 PM' modifiedOn='29/08/2004 05:38:07 PM'></EventCard>
-                            */}
+                        <Stack tokens={{ childrenGap: 2 }} grow styles={ { root: { border: '1px solid #ccc', borderRadius: '4px', padding: '15px', overflowY: 'auto', minHeight: '400px' } }}>
+                            {this.state.Events.length > 0 && this.state.Events.map((item) => (
+                                <EventCard key={ item.key } personaImage={ item.personaImage } FooterCollapsed={ this.state.ShowHideFooter } header={ item.header } body={ item.body } footer={ item.footer }></EventCard>
+                            ))}
+                            { (this.state.Events.length === 0) && (!this.state.IsLoading) && <Stack grow horizontalAlign='center' verticalAlign='center'>
+                                    <Text>{ this.state.NoRecordsText }</Text>
+                                </Stack>}
                         </Stack>
                     </Stack>
                 </Stack>
@@ -104,33 +239,34 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
 
     ToggleSearchPanelVisibility(): void {
         this.setState((prevState) => ({
+            ...prevState,
             SearchProps: {
                 ...prevState.SearchProps,
                 SearchPanelVisible: !prevState.SearchProps.SearchPanelVisible
-            }
+            },
         }));
     }
 
     ToggleFilterPanelVisibility(): void {
         this.setState((prevState) => ({
-            SearchProps: {
-                ...prevState.SearchProps,
-            },
-            FilterPanelVisible: !prevState.FilterPanelVisible
+            ...prevState,
+            FilterPanelVisible: !prevState.FilterPanelVisible,
         }));
     }
 
     HideSearchPanelVisibility(): void {
         this.setState((prevState) => ({
+            ...prevState,
             SearchProps: {
                 ...prevState.SearchProps,
                 SearchPanelVisible: false
-            }
+            },
         }));
     }
 
     SearchButtonClickOnSearchPanel(startDate: Date, endDate: Date, selectedDuration: string, recordTypes: string[]): void {        
         this.setState((prevState) => ({
+            ...prevState,
             SearchProps: {
                 ...prevState.SearchProps,
                 DateRange: {
@@ -139,7 +275,16 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                 },
                 SelectedRecordTypes: recordTypes,
                 SelectedDuration: selectedDuration
-            }
+            },
+        }));
+
+        this.GetTimelineRecords();
+    }
+
+    ToggleFooterVisibility(): void {        
+        this.setState((prevState) => ({
+            ...prevState,
+            ShowHideFooter: !this.state.ShowHideFooter,
         }));
     }
 
@@ -160,16 +305,16 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
     UpdateSearchText(searchText: string, invokeSearch: boolean): void {
         if(this.state.SearchProps.TimelineSearch !== searchText) {
             this.setState((prevState) => ({
+                ...prevState,
                 SearchProps: {
                     ...prevState.SearchProps,
                     TimelineSearch: searchText
-                }
+                },
             }),
             () => {
                 if(invokeSearch){
                     // This callback function is called after the state has been updated
-                    console.log('Search query:', searchText);
-                    console.log('TimelineSearch:', this.state.SearchProps.TimelineSearch);
+                    this.FilterTimelineRecords();
                 }
             });
         }

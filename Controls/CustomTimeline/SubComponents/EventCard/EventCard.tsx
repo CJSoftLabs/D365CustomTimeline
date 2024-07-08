@@ -6,11 +6,12 @@ export class EventCard extends React.Component<EventCardProps, EventCardProps> {
     constructor(props: EventCardProps) {
       super(props);
       this.state = {
+        key: this.props.key,
         personaImage: this.props.personaImage,
         header: this.props.header,
         body: this.props.body,
         footer: this.props.footer,
-        isFooterCollapsed: this.props.isFooterCollapsed,
+        FooterCollapsed: this.props.FooterCollapsed,
         commandbarItems: this.props.commandbarItems,
       }
       this.ToggleFooterCollapse = this.ToggleFooterCollapse.bind(this);
@@ -18,11 +19,20 @@ export class EventCard extends React.Component<EventCardProps, EventCardProps> {
 
     ToggleFooterCollapse = (event: any) => {
         this.setState((prevState) => ({
-          isFooterCollapsed: !prevState.isFooterCollapsed,
+          FooterCollapsed: !prevState.FooterCollapsed,
         }));
 
         event.stopPropagation();
       };
+
+      componentDidUpdate(prevProps: EventCardProps) {
+        if(prevProps.FooterCollapsed !== this.props.FooterCollapsed) {
+          this.setState((prevState) => ({
+            ...prevState,
+            FooterCollapsed: this.props.FooterCollapsed,
+          }));
+        }
+      }
     
     // Define tokens for spacing
     cardStackTokens: IStackTokens = { childrenGap: 0 };
@@ -35,8 +45,6 @@ export class EventCard extends React.Component<EventCardProps, EventCardProps> {
     genericTextStyles: IStackStyles  = { root: { paddingLeft: '10px' } };
  
     renderConfigItems(items: ConfigItem[], applyCardTextStyles: boolean) {
-        // const cardTextStyles: ITextStyles = { root: { color: '#666' } };
-
         return items
           .sort((a, b) => a.sequence - b.sequence)
           .map((item, index) => {
@@ -93,11 +101,12 @@ export class EventCard extends React.Component<EventCardProps, EventCardProps> {
                         {/* CommandBar */}
                         <Stack horizontalAlign='end'>
                             <CommandBar items={[
-                                { key: 'Assign', iconProps: { iconName: 'FollowUser' }, iconOnly: true, title: "Assign", buttonStyles: this.commandbarButtonStyles },
-                                { key: 'CloseActivity', iconProps: { iconName: 'CheckMark' }, iconOnly: true, title: "Close Activity", buttonStyles: this.commandbarButtonStyles },
-                                { key: 'OpenRecord', iconProps: { iconName: 'OpenInNewWindow' }, iconOnly: true, title: "Open Record", buttonStyles: this.commandbarButtonStyles },
-                                { key: 'AddToQueue', iconProps: { iconName: 'BuildQueueNew' }, iconOnly: true, title: "Add To Queue", buttonStyles: this.commandbarButtonStyles },
-                                { key: 'Delete', iconProps: { iconName: 'Delete' }, iconOnly: true, title: "Delete", buttonStyles: this.commandbarButtonStyles }
+                                // { key: 'Assign', iconProps: { iconName: 'FollowUser' }, iconOnly: true, title: "Assign", buttonStyles: this.commandbarButtonStyles },
+                                // { key: 'CloseActivity', iconProps: { iconName: 'CheckMark' }, iconOnly: true, title: "Close Activity", buttonStyles: this.commandbarButtonStyles },
+                                // { key: 'OpenRecord', iconProps: { iconName: 'OpenInNewWindow' }, iconOnly: true, title: "Open Record", buttonStyles: this.commandbarButtonStyles },
+                                // { key: 'AddToQueue', iconProps: { iconName: 'BuildQueueNew' }, iconOnly: true, title: "Add To Queue", buttonStyles: this.commandbarButtonStyles },
+                                // { key: 'Delete', iconProps: { iconName: 'Delete' }, iconOnly: true, title: "Delete", buttonStyles: this.commandbarButtonStyles }
+                                { key: 'OpenRecord', iconProps: { iconName: 'FollowUser' }, iconOnly: true, title: "Open Record", buttonStyles: this.commandbarButtonStyles },
                             ]}></CommandBar>
                         </Stack>
                     </Stack>
@@ -108,18 +117,18 @@ export class EventCard extends React.Component<EventCardProps, EventCardProps> {
                     {/* Footer */}
                     <Stack>
                         <Stack horizontal verticalAlign="center" styles={ this.genericTextStyles }>
-                            {!this.state.isFooterCollapsed && <Stack>{this.renderConfigItems(this.state.footer, true)}</Stack>}
+                            {!this.state.FooterCollapsed && <Stack>{this.renderConfigItems(this.state.footer, true)}</Stack>}
                         </Stack>
                         <Stack horizontal onClick={ this.ToggleFooterCollapse } styles={ this.footerTextStylesCollapse }>
                             <Stack grow verticalAlign='center'>
                                 <Link>
-                                    {!this.state.isFooterCollapsed ? "View Less" : "View More"}
+                                    {!this.state.FooterCollapsed ? "View Less" : "View More"}
                                 </Link>
                             </Stack>
                             <Stack horizontalAlign='end' verticalAlign='center'>
                                 <IconButton
-                                    iconProps={{ iconName: this.state.isFooterCollapsed ? 'ChevronDown' : 'ChevronUp' }}
-                                    ariaLabel={this.state.isFooterCollapsed ? 'Expand Footer' : 'Collapse Footer'}
+                                    iconProps={{ iconName: this.state.FooterCollapsed ? 'ChevronDown' : 'ChevronUp' }}
+                                    ariaLabel={this.state.FooterCollapsed ? 'Expand Footer' : 'Collapse Footer'}
                                     onClick={this.ToggleFooterCollapse}
                                 />
                             </Stack>
