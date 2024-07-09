@@ -7,7 +7,7 @@ export interface TimelineProps {
     IsLoading?: boolean;
     Events: EventCardProps[];
     NoRecordsText: string;
-    RawData?: [];
+    RawData?: any[];
 }
 
 export interface DateRangeProps {
@@ -17,6 +17,7 @@ export interface DateRangeProps {
     SelectedMonths?: any;
     CollapsedYears?: any;
     UpdateDateFields?: (startDate: Date, endDate: Date) => void;
+    UpdateSelectedMonths?: (selectedMonths: any[]) => void;
 }
 
 export interface SearchProps {
@@ -26,6 +27,7 @@ export interface SearchProps {
     SelectedDuration: string;
     SearchPanelVisible: boolean;
     DateRange: DateRangeProps;
+    SelectedMonths?: string[];
     TimelineSearch?: string;
     Close?: () => void;
     UpdateSearch?: (startDate: Date, endDate: Date, selectedDuration: string, recordTypes: string[]) => void;
@@ -54,4 +56,9 @@ export interface EventCardProps {
 export interface MonthGroup {
     year: number;
     months: string[];
+}
+
+export interface TimelineData {
+    RawData: any[];
+    Events: any[];
 }

@@ -12,6 +12,7 @@ export class DateFilterPanel extends React.Component<DateRangeProps, DateRangePr
             SelectedMonths: {},
             CollapsedYears: {},
             UseCalendarMonth: this.props.UseCalendarMonth,
+            UpdateSelectedMonths: this.props.UpdateSelectedMonths
         };
 
         this.onCheckboxChange = this.onCheckboxChange.bind(this);
@@ -76,7 +77,10 @@ export class DateFilterPanel extends React.Component<DateRangeProps, DateRangePr
     };
 
     ApplyDateFilter = () => {
-      console.log('Apply button clicked');
+      const SelectedMonths = Object.keys(this.state.SelectedMonths).filter(key => this.state.SelectedMonths[key] === true);
+      if(SelectedMonths.length > 0) {
+        this.state.UpdateSelectedMonths?.(SelectedMonths);
+      }
     }
 
     componentDidUpdate(prevProps: DateRangeProps) {

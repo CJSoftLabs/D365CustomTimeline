@@ -60,13 +60,13 @@ export class CustomTimeline implements ComponentFramework.StandardControl<IInput
         const dropdownOptions: IDropdownOption[] = [
             { key: 'selectAll', text: 'Select All' },
             { key: 'ActivitiesHeader', text: 'Activities', itemType: DropdownMenuItemType.Header },
-            { key: 'email', text: 'Email' },
-            { key: 'phonecall', text: 'Phone Call' },
-            { key: 'task', text: 'Task' },
-            { key: 'letter', text: 'Letter' },
+            { key: 'activity-email', text: 'Email' },
+            { key: 'activity-phonecall', text: 'Phone Call' },
+            { key: 'activity-task', text: 'Task' },
+            { key: 'activity-letter', text: 'Letter' },
             { key: 'divider_1', text: '-', itemType: DropdownMenuItemType.Divider },
             { key: 'OtherEntitiesHeader', text: 'Other Entities', itemType: DropdownMenuItemType.Header },
-            { key: 'postactivity', text: 'Post Activity' },
+            { key: 'custom-postactivity', text: 'Post Activity' },
         ];
     
         const DurationChoices: IChoiceGroupOption[] = [

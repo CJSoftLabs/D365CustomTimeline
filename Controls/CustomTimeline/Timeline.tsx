@@ -2,8 +2,9 @@ import * as React from 'react';
 import { Stack, Text, SearchBox, IconButton, IContextualMenuProps, IStackTokens, IStackStyles, IIconProps, Spinner, Modal, SpinnerSize } from '@fluentui/react';
 import { EventCard } from './SubComponents/EventCard/EventCard';
 import { SearchPanel } from './SubComponents/SearchPanel/SearchPanel';
-import { EventCardProps, TimelineProps } from './Interfaces/Common';
+import { TimelineData, TimelineProps } from './Interfaces/Common';
 import { DateFilterPanel } from './SubComponents/DateFilterPanel/DateFilterPanel';
+import { DataSource } from './Api/DataSource';
 
 export class Timeline extends React.Component<TimelineProps, TimelineProps> {
     constructor(props: TimelineProps) {
@@ -15,6 +16,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
             IsLoading: true,
             NoRecordsText: this.props.NoRecordsText,
             Events: this.props.Events,
+            RawData: [],
         };
         
         // Bind the event handler to the class instance
@@ -27,126 +29,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
         this.UpdateSearchTextOnClear = this.UpdateSearchTextOnClear.bind(this);
         this.ToggleFooterVisibility = this.ToggleFooterVisibility.bind(this);
         this.GetTimelineRecords = this.GetTimelineRecords.bind(this);
-    }
-
-    componentDidMount() {
-        this.GetTimelineRecords();
-    }
-
-    async fetchData(primaryEntity: string, primaryKey: string, primaryValue: string) {
-        let returnData: [] = [];
-        await fetch('https://run.mocky.io/v3/195cc5ec-ef4d-4431-9eda-fc1bdba1664a')
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok ' + response.statusText);
-            }
-            return response.json();
-          })
-          .then(data => {
-            returnData = data.filter((item: { [x: string]: string; }) => item[primaryKey] === primaryValue);
-          })
-          .catch(error => {
-            returnData = [];
-          });
-
-          return returnData;
-    }
-
-    GetTimelineRecords() {
-        this.setState((prevState) => ({
-            ...prevState,
-            Events: [],
-            IsLoading: true
-        }),
-        async () => {
-            try {
-                let Data = await this.fetchData('postactivity', 'accountid', '83883308-7ad5-ea11-a813-000d3a33f3b4');
-                let UpdatedEvents: EventCardProps[] = [];
-
-                Data.forEach((item, index) => {
-                    UpdatedEvents.push({
-                        key: `postactivity_Event${index + 1}`,
-                        personaImage: 'Database',
-                        FooterCollapsed: false,
-                        header: [{ type: 'Text', variant:'medium', content: ('Event Date: ' + item["createdon"]), sequence: 1, isBold: true }],
-                        body: [{ type: 'Text', content: item["postactivityname"], sequence: 1 }, { type: 'Text', content: item["postactivitytype"], sequence: 2 }],
-                        footer: [{ type: 'Text', content: 'Created On: ' + item["createdon"], sequence: 1 }, { type: 'Text', content: 'Modified On: ' + item["modifiedon"], sequence: 2 }]
-                    });
-                });
-
-                //await this.delay(500);
-                this.setState((prevState) => ({
-                    ...prevState,
-                    Events: UpdatedEvents,
-                    IsLoading: false,
-                    RawData: Data,
-                }));
-            } catch (error) {
-              console.error('Error fetching status:', error);
-              this.setState((prevState) => ({
-                ...prevState,
-                IsLoading: false, }));
-            }
-        });
-    }
-
-    FilterTimelineRecords() {
-        this.setState((prevState) => ({
-            ...prevState,
-            Events: [],
-            IsLoading: true
-        }),
-        async() => {
-            try {
-                let UpdatedEvents: EventCardProps[] = [{
-                    key: 'Event1',
-                    personaImage: 'TriggerAuto',
-                    FooterCollapsed: false,
-                    header: [{ type: 'Text', variant:'medium', content: 'Event Date: 31/07/2004 12:50:31 AM', sequence: 1, isBold: true }],
-                    body: [{ type: 'Text', content: 'neque duis bibendum morbi non', sequence: 1 }, { type: 'Text', content: 'Type1', sequence: 2 }],
-                    footer: [{ type: 'Text', content: 'Created On: 31/07/2004 12:50:31 AM', sequence: 1 }, { type: 'Text', content: 'Modified On: 31/07/2004 12:50:31 AM', sequence: 2 }]
-                },
-                {
-                    key: 'Event2',
-                    personaImage: 'Stack',
-                    FooterCollapsed: false,
-                    header: [{ type: 'Text', variant:'medium', content: 'Event Date: 13/08/2004 05:11:04 PM', sequence: 1, isBold: true }],
-                    body: [{ type: 'Text', content: 'neque duis bibendum morbi non', sequence: 1 }, { type: 'Text', content: 'Type1', sequence: 2 }],
-                    footer: [{ type: 'Text', content: 'Created On: 13/08/2004 05:11:04 PM', sequence: 1 }, { type: 'Text', content: 'Modified On: 13/08/2004 05:11:04 PM', sequence: 2 } ]
-                },
-                {
-                    key: 'Event3',
-                    personaImage: 'SaveAll',
-                    FooterCollapsed: false,
-                    header: [{ type: 'Text', variant:'medium', content: 'Event Date: 31/07/2004 12:50:31 AM', sequence: 1, isBold: true }],
-                    body: [{ type: 'Text', content: 'neque duis bibendum morbi non', sequence: 1 }, { type: 'Text', content: 'Type1', sequence: 2 }],
-                    footer: [ { type: 'Text', content: 'Created On: 31/07/2004 12:50:31 AM', sequence: 1 }, { type: 'Text', content: 'Modified On: 31/07/2004 12:50:31 AM', sequence: 2 } ]
-                },
-                {
-                    key: 'Event4',
-                    personaImage: 'Database',
-                    FooterCollapsed: false,
-                    header: [{ type: 'Text', variant:'medium', content: 'Event Date: 31/07/2004 12:50:31 AM', sequence: 1, isBold: true }],
-                    body: [{ type: 'Text', content: 'neque duis bibendum morbi non', sequence: 1 }, { type: 'Text', content: 'Type1', sequence: 2 }],
-                    footer: [{ type: 'Text', content: 'Created On: 31/07/2004 12:50:31 AM', sequence: 1 }, { type: 'Text', content: 'Modified On: 31/07/2004 12:50:31 AM', sequence: 2 }]
-                }];
-                await this.delay(500);
-                this.setState((prevState) => ({
-                    ...prevState,
-                    Events: UpdatedEvents,
-                    IsLoading: false,
-                  }));
-            } catch (error) {
-              console.error('Error fetching status:', error);
-                this.setState((prevState) => ({
-                    ...prevState,
-                    IsLoading: false, }));
-            }
-        });
-    }
-
-    delay = (ms: number): Promise<void> => {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        this.UpdateSelectedMonthsForSearch = this.UpdateSelectedMonthsForSearch.bind(this);
     }
 
     sortMenuProps: IContextualMenuProps = {
@@ -155,11 +38,13 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
             key: 'sortDescending',
             text: 'Sort newer to older',
             iconProps: { iconName: 'GroupedDescending' },
+            onClick: () => { this.SortTimelineRecords("desc") },
           },
           {
             key: 'sortAscending',
             text: 'Sort older to newer',
             iconProps: { iconName: 'GroupedAscending' },
+            onClick: () => { this.SortTimelineRecords("asc") },
           },
         ],
         directionalHintFixed: true,
@@ -221,9 +106,10 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                     </Stack>
                     <Stack horizontal>
                         {this.state.FilterPanelVisible && (<Stack styles={ this.filterStackStyles }>
-                            <DateFilterPanel StartDate={ this.state.SearchProps.DateRange.StartDate } EndDate={ this.state.SearchProps.DateRange.EndDate } UseCalendarMonth={ this.state.SearchProps.DateRange.UseCalendarMonth }></DateFilterPanel>
+                            <DateFilterPanel StartDate={ this.state.SearchProps.DateRange.StartDate } EndDate={ this.state.SearchProps.DateRange.EndDate } 
+                            UseCalendarMonth={ this.state.SearchProps.DateRange.UseCalendarMonth } UpdateSelectedMonths={ this.UpdateSelectedMonthsForSearch }></DateFilterPanel>
                         </Stack>)}
-                        <Stack tokens={{ childrenGap: 2 }} grow styles={ { root: { border: '1px solid #ccc', borderRadius: '4px', padding: '15px', overflowY: 'auto', minHeight: '400px' } }}>
+                        <Stack tokens={{ childrenGap: 2 }} grow styles={ { root: { border: '1px solid #ccc', borderRadius: '4px', padding: '15px', overflowY: 'auto', minHeight: '400px', maxHeight: '120vh' } }}>
                             {this.state.Events.length > 0 && this.state.Events.map((item) => (
                                 <EventCard key={ item.key } personaImage={ item.personaImage } FooterCollapsed={ this.state.ShowHideFooter } header={ item.header } body={ item.body } footer={ item.footer }></EventCard>
                             ))}
@@ -235,6 +121,64 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                 </Stack>
             </Stack>
         );
+    }
+
+    componentDidMount() {
+        this.GetTimelineRecords();
+    }
+
+    GetTimelineRecords() {
+        this.GetData("GetTimelineRecords");
+    }
+
+    SortTimelineRecords(sortDirection: string) {
+        this.GetData("SortTimelineRecords", sortDirection);
+    }
+
+    FilterTimelineRecords() {
+        this.GetData("FilterTimelineRecords");
+    }
+
+    GetData(operation: string, sortDirection?: string){
+        this.setState((prevState) => ({
+            ...prevState,
+            Events: [],
+            IsLoading: true
+        }),
+        async () => {
+            try {
+                let Data: TimelineData;
+
+                switch(operation.toLowerCase()){
+                    case "gettimelinerecords":
+                        Data = await DataSource.FetchData('postactivity', 'accountid', '83883308-7ad5-ea11-a813-000d3a33f3b4');
+                        break;
+                    case "sorttimelinerecords":
+                        Data = await DataSource.SortData(this.state.RawData || [], sortDirection || 'asc');
+                        break;
+                    case "filtertimelinerecords":
+                        Data = await DataSource.FilterData(this.state.RawData || []);
+                        break;
+                }
+
+                await this.delay(500);
+                this.setState((prevState) => ({
+                    ...prevState,
+                    Events: Data.Events,
+                    IsLoading: false,
+                    RawData: Data.RawData,
+                }));
+            } catch (error) {
+              console.error('Error fetching status:', error);
+              this.setState((prevState) => ({
+                ...prevState,
+                IsLoading: false, }));
+            }
+        });
+    }
+
+    delay = (ms: number): Promise<void> => {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     ToggleSearchPanelVisibility(): void {
@@ -318,5 +262,19 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                 }
             });
         }
+    }
+
+    UpdateSelectedMonthsForSearch(SelectedMonths: string[]) {
+        this.setState((prevState) => ({
+            ...prevState,
+            SearchProps: {
+                ...prevState.SearchProps,
+                SelectedMonths: SelectedMonths
+            },
+        }),
+        () => {
+            // This callback function is called after the state has been updated
+            this.FilterTimelineRecords();
+        });
     }
 }
