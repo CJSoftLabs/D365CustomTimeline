@@ -1,4 +1,5 @@
 import { IChoiceGroupOption, ICommandBarItemProps, IDropdownOption } from "@fluentui/react";
+import { IInputs } from "../generated/ManifestTypes";
 
 export interface TimelineProps {
     SearchProps: SearchProps;
@@ -7,7 +8,12 @@ export interface TimelineProps {
     IsLoading?: boolean;
     Events: EventCardProps[];
     NoRecordsText: string;
+    ItemsToDisplay: number;
     RawData?: any[];
+    HasMorePages?: boolean;
+    HasMoreItems?: boolean;
+    StartedToLoad?: boolean;
+    Context: ComponentFramework.Context<IInputs>;
 }
 
 export interface DateRangeProps {
@@ -27,7 +33,6 @@ export interface SearchProps {
     SelectedDuration: string;
     SearchPanelVisible: boolean;
     DateRange: DateRangeProps;
-    SelectedMonths?: string[];
     TimelineSearch?: string;
     Close?: () => void;
     UpdateSearch?: (startDate: Date, endDate: Date, selectedDuration: string, recordTypes: string[]) => void;

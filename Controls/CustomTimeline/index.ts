@@ -1,5 +1,4 @@
 import * as React from "react";
-import { DropdownMenuItemType, IChoiceGroupOption, IDropdownOption } from "@fluentui/react";
 import { createRoot, Root } from 'react-dom/client';
 import {IInputs, IOutputs} from "./generated/ManifestTypes";
 import { Timeline } from "./Timeline";
@@ -9,13 +8,13 @@ export class CustomTimeline implements ComponentFramework.StandardControl<IInput
     private container: HTMLDivElement;
     private context: ComponentFramework.Context<IInputs>;
     private rootControl: Root;
+    private configData: any;
 
     /**
      * Empty constructor.
      */
     constructor()
     {
-
     }
 
     /**
@@ -31,8 +30,7 @@ export class CustomTimeline implements ComponentFramework.StandardControl<IInput
         // Add control initialization code
         this.context = context;
         this.container = container;
-        // this.container = document.createElement("div");
-        // container.appendChild(this.container);
+        this.configData = JSON.parse(context.parameters.configData.raw || '{}');
     }
 
     /**
@@ -41,58 +39,28 @@ export class CustomTimeline implements ComponentFramework.StandardControl<IInput
      */
     public updateView(context: ComponentFramework.Context<IInputs>): void
     {
-        // Add code to update control viewthis.context = context;
-        // const jsonString = context.parameters.jsonData.raw;
-        // if (jsonString) {
-        //     //this.renderCards(jsonString);
-        // }
-
         this.RenderControl();
     }
 
     private RenderControl(){
-        const currentDate = new Date();
-        const beginDate = new Date(currentDate);
-        beginDate.setDate(1);
-        beginDate.setMonth(beginDate.getMonth() - 8);
-        //beginDate.setMonth(currentDate.getMonth() - 9);
+        //let configs = JSON.parse(this.configData);
+        const oTimelineProps: TimelineProps = this.configData.TimelineProps;
+        let value = oTimelineProps.SearchProps.SelectedDuration;
 
-        const dropdownOptions: IDropdownOption[] = [
-            { key: 'selectAll', text: 'Select All' },
-            { key: 'ActivitiesHeader', text: 'Activities', itemType: DropdownMenuItemType.Header },
-            { key: 'activity-email', text: 'Email' },
-            { key: 'activity-phonecall', text: 'Phone Call' },
-            { key: 'activity-task', text: 'Task' },
-            { key: 'activity-letter', text: 'Letter' },
-            { key: 'divider_1', text: '-', itemType: DropdownMenuItemType.Divider },
-            { key: 'OtherEntitiesHeader', text: 'Other Entities', itemType: DropdownMenuItemType.Header },
-            { key: 'custom-postactivity', text: 'Post Activity' },
-        ];
-    
-        const DurationChoices: IChoiceGroupOption[] = [
-            { key: '3m', text: 'Last 3 Months' },
-            { key: '6m', text: 'Last 6 Months' },
-            { key: '9m', text: 'Last 9 Months' },
-            { key: 'custom', text: 'Custom' },
-        ];
-    
-        const oTimelineProps: TimelineProps = {
-            SearchProps: {
-                RecordTypes: dropdownOptions,
-                SelectedRecordTypes: ['email'],
-                DurationChoices: DurationChoices,
-                SelectedDuration: '9m',
-                SearchPanelVisible: false,
-                DateRange: {
-                    StartDate: beginDate,
-                    EndDate: currentDate,
-                    UseCalendarMonth: true,
-                }
-            },
-            ShowHideFooter: false,
-            NoRecordsText: "No Records available to display",
-            Events: []
-        };
+        if(value !== 'custom') {
+            const sDate = new Date();
+            if(oTimelineProps.SearchProps.DateRange.UseCalendarMonth ?? false) {
+                sDate.setDate(1);
+                sDate.setMonth(sDate.getMonth() - +(value.replace('m', '')) +1);
+            } else {
+                sDate.setMonth(sDate.getMonth() - +(value.replace('m', '')));
+            }
+
+            oTimelineProps.SearchProps.DateRange.StartDate = sDate;
+            oTimelineProps.SearchProps.DateRange.EndDate = new Date();
+        }
+        oTimelineProps.Context = this.context;
+
         if(this.rootControl === undefined)
         {
             this.rootControl = createRoot(this.container);
