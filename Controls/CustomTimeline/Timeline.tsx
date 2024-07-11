@@ -37,6 +37,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
         this.GetTimelineRecords = this.GetTimelineRecords.bind(this);
         this.UpdateSelectedMonthsForSearch = this.UpdateSelectedMonthsForSearch.bind(this);
         this.HandleLoadMoreClick = this.HandleLoadMoreClick.bind(this);
+        this.HandleEventListScroll = this.HandleEventListScroll.bind(this);
     }
 
     sortMenuProps: IContextualMenuProps = {
@@ -120,11 +121,12 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                             <DateFilterPanel StartDate={ this.state.SearchProps.DateRange.StartDate } EndDate={ this.state.SearchProps.DateRange.EndDate } SelectedMonths={ this.state.SearchProps.DateRange.SelectedMonths }
                             UseCalendarMonth={ this.state.SearchProps.DateRange.UseCalendarMonth } UpdateSelectedMonths={ this.UpdateSelectedMonthsForSearch }></DateFilterPanel>
                         </Stack>)}
-                        <Stack tokens={{ childrenGap: 2 }} grow styles={ { root: { border: '1px solid #ccc', borderRadius: '4px', padding: '15px', overflowY: 'auto', minHeight: '55vh', maxHeight: '55vh' } }}>
+                        <Stack tokens={{ childrenGap: 2 }} grow  onScroll={ this.HandleEventListScroll }
+                            styles={ { root: { border: '1px solid #ccc', borderRadius: '4px', padding: '15px', overflowY: 'auto', minHeight: '55vh', maxHeight: '55vh' } }}>
                                 {this.state.Events.length > 0 && this.state.Events.map((item) => (
                                     <EventCard key={ item.key } personaImage={ item.personaImage } FooterCollapsed={ this.state.ShowHideFooter } header={ item.header } body={ item.body } footer={ item.footer }></EventCard>
                                 ))}
-                                <Stack onMouseOver={ () => { if(this.state.StartedToLoad) { this.HandleLoadMoreClick(); } }}>
+                                <Stack>
                                     {this.state.HasMoreItems && (
                                         <Link onClick={this.HandleLoadMoreClick} style={{ marginTop: '20px' }}>
                                             Load more
@@ -183,6 +185,15 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
     HandleLoadMoreClick() {
         this.LoadMoreItems();
     }
+
+    HandleEventListScroll = (event: React.UIEvent<HTMLDivElement>) => {
+        const container = event.target as HTMLDivElement;
+        if (container.scrollHeight - container.scrollTop === container.clientHeight) {
+          if (this.state.HasMoreItems && this.state.StartedToLoad) {
+            this.LoadMoreItems();
+          }
+        }
+      };
 
     GetTimelineRecords() {
         this.GetData("GetTimelineRecords");
