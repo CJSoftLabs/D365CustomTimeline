@@ -1,15 +1,32 @@
+import { EntityModel, RecordData } from "../Interfaces/AppTypes";
 import { IInputs } from "../generated/ManifestTypes";
 
 export class DataSource {
   static Context: ComponentFramework.Context<IInputs>;
 
-  static async FetchData(primaryEntity: string, query: string, fields: string, sortDirection: string, itemsToDisplay: number) {
-      let hasMorePages: boolean = true;      
-      let rawRecordsData: any[] = [];
-      
-      try {
+  static async FetchData(entityList: EntityModel[], sortDirection: string, itemsToDisplay: number) {
+    let hasMorePages: boolean = true;      
+    let rawRecordsData: any[] = [];
+    let recordsData: any[] = [];
+
+    if (entityList) {
+      for (const entity of entityList) {
+        let query: string = entity.Select;
+        let filter: string = entity.Filter.Query;
+
+        entity.Filter.Parameters.forEach(param => {
+            if (param.Type === "Parameter" && param.Variable in DataSource.Context.parameters) {
+                const placeholder = `{${param.Sequence}}`;
+                const value = DataSource.Context.parameters[param.Variable as keyof IInputs]?.raw || '';
+                filter = filter.replace(placeholder, value);
+            }
+        });
+
+        filter = (filter.trim().length > 0) ? '&' + filter : '';
+
         while (query !== '') {
-            const result = await DataSource.Context.webAPI.retrieveMultipleRecords(primaryEntity, query + fields);
+          try {
+            const result = await DataSource.Context.webAPI.retrieveMultipleRecords(entity.PrimaryEntity, "?" + query + filter);
             rawRecordsData = rawRecordsData.concat(result.entities);
 
             const nextLink = (result as any)["@odata.nextLink"];
@@ -18,27 +35,26 @@ export class DataSource {
               } else {
                   query = '';
               }
+          } catch(error) {
+            query = '';
+            console.error('Error fetching status:', error);
+          }
         }
-      } catch(error) {
-        console.error('Error fetching status:', error);
+
+        for (const element of rawRecordsData) {
+          let recordData: RecordData = {
+            entityName: entity.Name
+          };
+          entity.FieldMapping === null || entity.FieldMapping === void 0 ? void 0 : entity.FieldMapping.forEach(Mapping => {
+            recordData[Mapping.TargetField] = element[Mapping.SourceField];
+          });
+          recordsData.push(recordData);
+        }
       }
+    }
+    recordsData = (await DataSource.SortData(recordsData, sortDirection, true, 0)).RawData;
 
-      let recordsData: any[] = [];
-      rawRecordsData === null || rawRecordsData === void 0 ? void 0 : rawRecordsData.forEach(element => {
-        let recordData = {
-          id: element["cjs_postactivityid"],
-          name: element["cjs_postactivityname"],
-          description: element["cjs_body"],
-          other: element["cjs_postactivitytype@OData.Community.Display.V1.FormattedValue"],
-          sortDateValue: element["cjs_createdon"],
-          createdOn: element["cjs_createdon"],
-          modifiedOn: element["cjs_modifiedon"],
-        };
-        recordsData.push(recordData);
-      });
-      recordsData = (await DataSource.SortData(recordsData, sortDirection, true, 0)).RawData;
-
-      return this.GenerateOutputData(recordsData, hasMorePages, true, itemsToDisplay);
+    return this.GenerateOutputData(recordsData, hasMorePages, true, itemsToDisplay);
   }
 
   static async GenerateOutputData(SourceData: any[], HasMorePages: boolean, BuildRawData: boolean, itemsToDisplay: number) {
@@ -50,8 +66,8 @@ export class DataSource {
       }
       if(index < itemsToDisplay) {
         UpdatedRecords.push({
-            key: ('postactivity_Record' + item["id"]),
-            personaImage: 'Database',
+            key: (item["entityName"] + '_Record_' + item["id"]),
+            //personaImage: 'Database',
             FooterCollapsed: false,
             header: [{ type: 'Text', variant:'medium', content: ('Record Date: ' + item["createdOn"]), sequence: 1, isBold: true }],
             body: [{ type: 'Text', content: item["name"], sequence: 1 }, { type: 'Text', content: item["other"], sequence: 2 }],

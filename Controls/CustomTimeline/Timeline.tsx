@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Stack, Text, SearchBox, IconButton, IContextualMenuProps, IStackTokens, IStackStyles, IIconProps, Spinner, Modal, SpinnerSize, Link, List } from '@fluentui/react';
 import { RecordCard } from './SubComponents/RecordCard/RecordCard';
 import { SearchPanel } from './SubComponents/SearchPanel/SearchPanel';
-import { TimelineData, TimelineProps } from './Interfaces/Common';
+import { TimelineData, TimelineProps } from './Interfaces/AppTypes';
 import { DateFilterPanel } from './SubComponents/DateFilterPanel/DateFilterPanel';
 import { DataSource } from './Api/DataSource';
 
@@ -21,6 +21,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
             HasMoreItems: false,
             StartedToLoad: false,
             Context: this.props.Context,
+            ControlModel: this.props.ControlModel,
         };
 
         DataSource.Context = this.state.Context;
@@ -224,7 +225,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
 
                 switch(operation.toLowerCase()){
                     case "gettimelinerecords":
-                        Data = await DataSource.FetchData('cjs_postactivity', `?$filter=cjs_accountid/accountid eq '${DataSource.Context.parameters.primaryKey.raw}'`, '&$select=cjs_postactivityid,cjs_postactivityname,cjs_body,cjs_postactivitytype,cjs_createdon,cjs_modifiedon', (sortDirection ?? ''), this.state.ItemsToDisplay);
+                        Data = await DataSource.FetchData(this.state.ControlModel.Entities, (sortDirection ?? ''), this.state.ItemsToDisplay);
                         SelectedMonth = {};
                         break;
                     case "sorttimelinerecords":

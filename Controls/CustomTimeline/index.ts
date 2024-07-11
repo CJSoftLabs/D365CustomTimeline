@@ -2,7 +2,7 @@ import * as React from "react";
 import { createRoot, Root } from 'react-dom/client';
 import {IInputs, IOutputs} from "./generated/ManifestTypes";
 import { Timeline } from "./Timeline";
-import { TimelineProps } from './Interfaces/Common';
+import { TimelineProps } from './Interfaces/AppTypes';
 
 export class CustomTimeline implements ComponentFramework.StandardControl<IInputs, IOutputs> {
     private container: HTMLDivElement;
@@ -59,6 +59,52 @@ export class CustomTimeline implements ComponentFramework.StandardControl<IInput
             oTimelineProps.SearchProps.DateRange.EndDate = new Date();
         }
         oTimelineProps.Context = this.context;
+        oTimelineProps.ControlModel = {
+            //Fields: ["entityName", "id", "name", "description", "other", "sortDateValue", "createdOn", "modifiedOn"],
+            UiTemplate: {},
+            Entities: [{
+                Name: "PostActivity",
+                PrimaryEntity: "cjs_postactivity",
+                IsActivity: false,
+                Select: "$select=cjs_postactivityid,cjs_postactivityname,cjs_body,cjs_postactivitytype,cjs_createdon,cjs_modifiedon",
+                Filter: {
+                    Query: "$filter=cjs_accountid/accountid eq '{0}'",
+                    Parameters: [{
+                        Sequence: 0,
+                        Type: "Parameter",
+                        Variable: "primaryKey"
+                    }]
+                },
+                FieldMapping: [{
+                    SourceField: "cjs_postactivityid",
+                    TargetField: "id"
+                },
+                {
+                    SourceField: "cjs_postactivityname",
+                    TargetField: "name"
+                },
+                {
+                    SourceField: "cjs_body",
+                    TargetField: "description"
+                },
+                {
+                    SourceField: "cjs_postactivitytype",
+                    TargetField: "other"
+                },
+                {
+                    SourceField: "cjs_createdon",
+                    TargetField: "sortDateValue"
+                },
+                {
+                    SourceField: "cjs_createdon",
+                    TargetField: "createdOn"
+                },
+                {
+                    SourceField: "cjs_modifiedon",
+                    TargetField: "modifiedOn"
+                },]
+            }]
+        };
 
         if(this.rootControl === undefined)
         {

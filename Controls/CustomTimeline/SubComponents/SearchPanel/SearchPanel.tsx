@@ -1,7 +1,7 @@
 import * as React from "react";
 import { ChoiceGroup, Dropdown, DropdownMenuItemType, IChoiceGroupOption, IDropdownOption, IStackStyles, IconButton, PrimaryButton, Stack, Text } from '@fluentui/react';
 import { DateRangePicker } from "../DateRangePicker/DateRangePicker";
-import { SearchProps } from "../../Interfaces/Common";
+import { SearchProps } from "../../Interfaces/AppTypes";
 import './SearchPanel.css';
 
 export class SearchPanel extends React.Component<SearchProps, SearchProps>{

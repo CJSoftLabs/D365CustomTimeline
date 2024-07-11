@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as moment from 'moment';
-import { DateRangeProps, MonthGroup } from "../../Interfaces/Common";
+import { DateRangeProps, MonthGroup } from "../../Interfaces/AppTypes";
 import { Checkbox, ILabelStyles, IStackTokens, IconButton, Label, PrimaryButton, Stack, mergeStyles } from "@fluentui/react";
 
 export class DateFilterPanel extends React.Component<DateRangeProps, DateRangeProps> {

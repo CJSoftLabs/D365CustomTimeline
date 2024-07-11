@@ -14,6 +14,7 @@ export interface TimelineProps {
     HasMoreItems?: boolean;
     StartedToLoad?: boolean;
     Context: ComponentFramework.Context<IInputs>;
+    ControlModel: AppModel;
 }
 
 export interface DateRangeProps {
@@ -67,4 +68,40 @@ export interface MonthGroup {
 export interface TimelineData {
     RawData: any[];
     Records: any[];
+}
+
+export interface EntityModel {
+    Name: string;
+    IsActivity: boolean;
+    PrimaryEntity: string;
+    Select: string;
+    Filter: EntityFilter;
+    FieldMapping: EntityFieldMapping[];
+}
+
+export interface EntityFilter {
+    Query: string;
+    Parameters: EntityFilterParameter[];
+}
+
+export interface EntityFilterParameter {
+    Sequence: number;
+    Type: string;
+    Variable: string;
+}
+
+export interface EntityFieldMapping {
+    SourceField: string;
+    TargetField: string;
+}
+
+export interface AppModel {
+    Fields?: string[];
+    UiTemplate: any;
+    Entities: EntityModel[];
+}
+
+export interface RecordData {
+    entityName: string;
+    [key: string]: any;
 }

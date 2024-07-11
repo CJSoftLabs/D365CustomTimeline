@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Stack, DatePicker, DayOfWeek, IStackTokens, IStackStyles, IDatePickerStyles } from '@fluentui/react';
 import './DateRangePicker.css'
-import { DateRangeProps } from '../../Interfaces/Common';
+import { DateRangeProps } from '../../Interfaces/AppTypes';
 
 export class DateRangePicker extends React.Component<DateRangeProps, DateRangeProps> {
   // Define tokens for spacing

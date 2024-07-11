@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Text, Icon, Link, Label, Stack, IStackTokens, IStackStyles, IButtonStyles, Persona, PersonaSize, CommandBar, ITextStyles, IFontStyles, IconButton, ICommandBarItemProps } from '@fluentui/react';
-import { RecordCardProps, ConfigItem } from '../../Interfaces/Common';
+import { RecordCardProps, ConfigItem } from '../../Interfaces/AppTypes';
 
 export class RecordCard extends React.Component<RecordCardProps, RecordCardProps> {
     constructor(props: RecordCardProps) {
