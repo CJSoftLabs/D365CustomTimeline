@@ -14,6 +14,7 @@ export class SearchPanel extends React.Component<SearchProps, SearchProps>{
             SelectedDuration: this.props.SelectedDuration,
             SearchPanelVisible: this.props.SearchPanelVisible,
             DateRange: this.props.DateRange,
+            SortDirection: this.props.SortDirection,
         };
 
         // Bind the event handler to the class instance

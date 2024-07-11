@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Stack, Text, SearchBox, IconButton, IContextualMenuProps, IStackTokens, IStackStyles, IIconProps, Spinner, Modal, SpinnerSize, Link, List } from '@fluentui/react';
-import { EventCard } from './SubComponents/EventCard/EventCard';
+import { RecordCard } from './SubComponents/RecordCard/RecordCard';
 import { SearchPanel } from './SubComponents/SearchPanel/SearchPanel';
 import { TimelineData, TimelineProps } from './Interfaces/Common';
 import { DateFilterPanel } from './SubComponents/DateFilterPanel/DateFilterPanel';
@@ -15,7 +15,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
             ShowHideFooter: this.props.ShowHideFooter,
             IsLoading: true,
             NoRecordsText: this.props.NoRecordsText,
-            Events: this.props.Events,
+            Records: this.props.Records,
             RawData: [],
             ItemsToDisplay: this.props.ItemsToDisplay,
             HasMoreItems: false,
@@ -37,7 +37,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
         this.GetTimelineRecords = this.GetTimelineRecords.bind(this);
         this.UpdateSelectedMonthsForSearch = this.UpdateSelectedMonthsForSearch.bind(this);
         this.HandleLoadMoreClick = this.HandleLoadMoreClick.bind(this);
-        this.HandleEventListScroll = this.HandleEventListScroll.bind(this);
+        this.HandleRecordListScroll = this.HandleRecordListScroll.bind(this);
     }
 
     sortMenuProps: IContextualMenuProps = {
@@ -111,7 +111,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                         (<SearchPanel DurationChoices={this.state.SearchProps.DurationChoices} RecordTypes={this.state.SearchProps.RecordTypes}
                             SelectedDuration={this.state.SearchProps.SelectedDuration} SelectedRecordTypes={this.state.SearchProps.SelectedRecordTypes}
                             SearchPanelVisible={this.state.SearchProps.SearchPanelVisible } Close={ this.HideSearchPanelVisibility } DateRange={ this.state.SearchProps.DateRange }
-                            UpdateSearch={ this.SearchButtonClickOnSearchPanel }></SearchPanel>)}
+                            UpdateSearch={ this.SearchButtonClickOnSearchPanel } SortDirection={ this.state.SearchProps.SortDirection }></SearchPanel>)}
                     <Stack grow>
                         <SearchBox placeholder='Search timeline' styles={this.searchboxStyles} onSearch={ this.UpdateSearchTextOnSearch } 
                         onBlur={ this.UpdateSearchTextOnBlur } onClear={ this.UpdateSearchTextOnClear } value={this.state.SearchProps.TimelineSearch}></SearchBox>
@@ -121,10 +121,10 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                             <DateFilterPanel StartDate={ this.state.SearchProps.DateRange.StartDate } EndDate={ this.state.SearchProps.DateRange.EndDate } SelectedMonths={ this.state.SearchProps.DateRange.SelectedMonths }
                             UseCalendarMonth={ this.state.SearchProps.DateRange.UseCalendarMonth } UpdateSelectedMonths={ this.UpdateSelectedMonthsForSearch }></DateFilterPanel>
                         </Stack>)}
-                        <Stack tokens={{ childrenGap: 2 }} grow  onScroll={ this.HandleEventListScroll }
+                        <Stack tokens={{ childrenGap: 2 }} grow  onScroll={ this.HandleRecordListScroll }
                             styles={ { root: { border: '1px solid #ccc', borderRadius: '4px', padding: '15px', overflowY: 'auto', minHeight: '55vh', maxHeight: '55vh' } }}>
-                                {this.state.Events.length > 0 && this.state.Events.map((item) => (
-                                    <EventCard key={ item.key } personaImage={ item.personaImage } FooterCollapsed={ this.state.ShowHideFooter } header={ item.header } body={ item.body } footer={ item.footer }></EventCard>
+                                {this.state.Records.length > 0 && this.state.Records.map((item) => (
+                                    <RecordCard key={ item.key } personaImage={ item.personaImage } FooterCollapsed={ this.state.ShowHideFooter } header={ item.header } body={ item.body } footer={ item.footer }></RecordCard>
                                 ))}
                                 <Stack>
                                     {this.state.HasMoreItems && (
@@ -133,13 +133,13 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                                         </Link>
                                     )}
                                 </Stack>
-                                {(this.state.Events.length === 0) && (!this.state.IsLoading) && <Stack grow horizontalAlign='center' verticalAlign='center'>
+                                {(this.state.Records.length === 0) && (!this.state.IsLoading) && <Stack grow horizontalAlign='center' verticalAlign='center'>
                                     <Text>{ this.state.NoRecordsText }</Text>
                                 </Stack>}
                         </Stack>
                     </Stack>
                     <Stack>
-                            <Text>Displaying { this.state.Events.length } Records</Text>
+                            <Text>Displaying { this.state.Records.length } Records</Text>
                         </Stack>
                 </Stack>
             </Stack>
@@ -158,17 +158,17 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
         }),
         async () => {
             try {
-                const nextItems =  await DataSource.GenerateOutputData(this.state.RawData?.slice(this.state.Events.length, this.state.Events.length + this.state.ItemsToDisplay) || [],  this.state.HasMorePages || false, false, this.state.ItemsToDisplay);
-                const newEvents = this.state.Events.concat(nextItems.Events);
+                const nextItems =  await DataSource.GenerateOutputData(this.state.RawData?.slice(this.state.Records.length, this.state.Records.length + this.state.ItemsToDisplay) || [],  this.state.HasMorePages || false, false, this.state.ItemsToDisplay);
+                const newRecords = this.state.Records.concat(nextItems.Records);
                 let HasMoreRecords = false;
-                if (this.state.HasMorePages || (this.state.RawData?.length || 0) > newEvents.length) {
+                if (this.state.HasMorePages || (this.state.RawData?.length || 0) > newRecords.length) {
                     HasMoreRecords = true;
                 }
                 
                 await this.delay(500);
                 this.setState((prevState) => ({
                     ...prevState,
-                    Events: newEvents,
+                    Records: newRecords,
                     HasMoreItems: HasMoreRecords,
                     IsLoading: false,
                     StartedToLoad: true,
@@ -186,7 +186,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
         this.LoadMoreItems();
     }
 
-    HandleEventListScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    HandleRecordListScroll = (event: React.UIEvent<HTMLDivElement>) => {
         const container = event.target as HTMLDivElement;
         if (container.scrollHeight - container.scrollTop === container.clientHeight) {
           if (this.state.HasMoreItems && this.state.StartedToLoad) {
@@ -196,7 +196,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
       };
 
     GetTimelineRecords() {
-        this.GetData("GetTimelineRecords");
+        this.GetData("GetTimelineRecords", this.state.SearchProps.SortDirection);
     }
 
     SortTimelineRecords(sortDirection: string) {
@@ -210,7 +210,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
     GetData(operation: string, sortDirection?: string){
         this.setState((prevState) => ({
             ...prevState,
-            Events: [],
+            Records: [],
             IsLoading: true,
             HasMoreItems: false,
         }),
@@ -218,32 +218,41 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
             try {
                 let Data: TimelineData = {
                     RawData: [],
-                    Events: []
+                    Records: []
                 };
+                let SelectedMonth: any = this.state.SearchProps.DateRange.SelectedMonths;
 
                 switch(operation.toLowerCase()){
                     case "gettimelinerecords":
-                        Data = await DataSource.FetchData('cjs_postactivity', `?$filter=cjs_accountid/accountid eq '${DataSource.Context.parameters.primaryKey.raw}'`, '83883308-7ad5-ea11-a813-000d3a33f3b4', this.state.ItemsToDisplay);
+                        Data = await DataSource.FetchData('cjs_postactivity', `?$filter=cjs_accountid/accountid eq '${DataSource.Context.parameters.primaryKey.raw}'`, '&$select=cjs_postactivityid,cjs_postactivityname,cjs_body,cjs_postactivitytype,cjs_createdon,cjs_modifiedon', (sortDirection ?? ''), this.state.ItemsToDisplay);
+                        SelectedMonth = {};
                         break;
                     case "sorttimelinerecords":
-                        Data = await DataSource.SortData(this.state.RawData || [], sortDirection || 'asc', this.state.ItemsToDisplay);
+                        Data = await DataSource.SortData(this.state.RawData || [], sortDirection || 'asc', false, this.state.ItemsToDisplay);
                         break;
                     case "filtertimelinerecords":
                         Data = await DataSource.FilterData(this.state.RawData || [], this.state.ItemsToDisplay);
                         break;
                 }
                 let HasMoreRecords = false;
-                if (this.state.HasMorePages || Data.RawData.length > Data.Events.length) {
+                if (this.state.HasMorePages || Data.RawData.length > Data.Records.length) {
                     HasMoreRecords = true;
                 }
 
                 await this.delay(500);
                 this.setState((prevState) => ({
                     ...prevState,
-                    Events: Data.Events,
+                    Records: Data.Records,
                     IsLoading: false,
                     RawData: Data.RawData,
                     HasMoreItems: HasMoreRecords,
+                    SearchProps: {
+                        ...prevState.SearchProps,
+                        DateRange: {
+                            ...prevState.SearchProps.DateRange,
+                            SelectedMonths: SelectedMonth,
+                        }
+                    }
                 }));
             } catch (error) {
               console.error('Error fetching status:', error);

@@ -3,13 +3,13 @@ import { IInputs } from "../generated/ManifestTypes";
 export class DataSource {
   static Context: ComponentFramework.Context<IInputs>;
 
-  static async FetchData(primaryEntity: string, query: string, primaryValue: string, itemsToDisplay: number) {
+  static async FetchData(primaryEntity: string, query: string, fields: string, sortDirection: string, itemsToDisplay: number) {
       let hasMorePages: boolean = true;      
       let rawRecordsData: any[] = [];
       
       try {
         while (query !== '') {
-            const result = await DataSource.Context.webAPI.retrieveMultipleRecords(primaryEntity, query);
+            const result = await DataSource.Context.webAPI.retrieveMultipleRecords(primaryEntity, query + fields);
             rawRecordsData = rawRecordsData.concat(result.entities);
 
             const nextLink = (result as any)["@odata.nextLink"];
@@ -28,47 +28,47 @@ export class DataSource {
         let recordData = {
           id: element["cjs_postactivityid"],
           name: element["cjs_postactivityname"],
-          description: element["cjs_description"],
+          description: element["cjs_body"],
           other: element["cjs_postactivitytype@OData.Community.Display.V1.FormattedValue"],
           sortDateValue: element["cjs_createdon"],
           createdOn: element["cjs_createdon"],
-          modifiedOn: element["cjs_createdon"],
+          modifiedOn: element["cjs_modifiedon"],
         };
         recordsData.push(recordData);
       });
+      recordsData = (await DataSource.SortData(recordsData, sortDirection, true, 0)).RawData;
 
       return this.GenerateOutputData(recordsData, hasMorePages, true, itemsToDisplay);
   }
 
   static async GenerateOutputData(SourceData: any[], HasMorePages: boolean, BuildRawData: boolean, itemsToDisplay: number) {
-    let UpdatedEvents: any[] = [];
+    let UpdatedRecords: any[] = [];
     let Data:any = [];
     SourceData.forEach((item: any, index) => {
-      item["sortdate"] = item["sortDateValue"];
       if(BuildRawData) {
         Data.push(item);
       }
       if(index < itemsToDisplay) {
-        UpdatedEvents.push({
-            key: ('postactivity_Event' + item["id"]),
+        UpdatedRecords.push({
+            key: ('postactivity_Record' + item["id"]),
             personaImage: 'Database',
             FooterCollapsed: false,
-            header: [{ type: 'Text', variant:'medium', content: ('Event Date: ' + item["createdOn"]), sequence: 1, isBold: true }],
+            header: [{ type: 'Text', variant:'medium', content: ('Record Date: ' + item["createdOn"]), sequence: 1, isBold: true }],
             body: [{ type: 'Text', content: item["name"], sequence: 1 }, { type: 'Text', content: item["other"], sequence: 2 }],
             footer: [{ type: 'Text', content: 'Created On: ' + item["createdOn"], sequence: 1 }, { type: 'Text', content: 'Modified On: ' + item["modifiedOn"], sequence: 2 }]
         });
       }
     });
 
-    return { RawData: Data, Events: UpdatedEvents };
+    return { RawData: Data, Records: UpdatedRecords };
 
   }
 
-  static async SortData(Data: any[], sortDirection: string, itemsToDisplay: number) {
+  static async SortData(Data: any[], sortDirection: string, returnSortedDataAsIs: boolean, itemsToDisplay: number) {
     if(Data !== undefined) {
       Data = Data.sort((a, b) => {
-          const dateA = new Date(a["sortdate"]).getTime();
-          const dateB = new Date(b["sortdate"]).getTime();
+          const dateA = new Date(a["sortDateValue"]).getTime();
+          const dateB = new Date(b["sortDateValue"]).getTime();
       
           if (sortDirection === 'asc') {
             return dateA - dateB;
@@ -78,6 +78,9 @@ export class DataSource {
             throw new Error('Invalid direction. Use "asc" for ascending or "desc" for descending.');
           }
       });
+    }
+    if(returnSortedDataAsIs) {
+      return { RawData: Data, Records: [] };
     }
     
     return this.GenerateOutputData(Data, false, true, itemsToDisplay);

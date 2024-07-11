@@ -43,7 +43,6 @@ export class CustomTimeline implements ComponentFramework.StandardControl<IInput
     }
 
     private RenderControl(){
-        //let configs = JSON.parse(this.configData);
         const oTimelineProps: TimelineProps = this.configData.TimelineProps;
         let value = oTimelineProps.SearchProps.SelectedDuration;
 

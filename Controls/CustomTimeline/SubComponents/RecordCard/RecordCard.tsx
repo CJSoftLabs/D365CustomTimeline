@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Text, Icon, Link, Label, Stack, IStackTokens, IStackStyles, IButtonStyles, Persona, PersonaSize, CommandBar, ITextStyles, IFontStyles, IconButton, ICommandBarItemProps } from '@fluentui/react';
-import { EventCardProps, ConfigItem } from '../../Interfaces/Common';
+import { RecordCardProps, ConfigItem } from '../../Interfaces/Common';
 
-export class EventCard extends React.Component<EventCardProps, EventCardProps> {
-    constructor(props: EventCardProps) {
+export class RecordCard extends React.Component<RecordCardProps, RecordCardProps> {
+    constructor(props: RecordCardProps) {
       super(props);
       this.state = {
         key: this.props.key,
@@ -25,7 +25,7 @@ export class EventCard extends React.Component<EventCardProps, EventCardProps> {
         event.stopPropagation();
       };
 
-      componentDidUpdate(prevProps: EventCardProps) {
+      componentDidUpdate(prevProps: RecordCardProps) {
         if(prevProps.FooterCollapsed !== this.props.FooterCollapsed) {
           this.setState((prevState) => ({
             ...prevState,

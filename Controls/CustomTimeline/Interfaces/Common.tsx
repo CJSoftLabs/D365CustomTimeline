@@ -6,7 +6,7 @@ export interface TimelineProps {
     FilterPanelVisible?: boolean;
     ShowHideFooter?: boolean;
     IsLoading?: boolean;
-    Events: EventCardProps[];
+    Records: RecordCardProps[];
     NoRecordsText: string;
     ItemsToDisplay: number;
     RawData?: any[];
@@ -33,6 +33,7 @@ export interface SearchProps {
     SelectedDuration: string;
     SearchPanelVisible: boolean;
     DateRange: DateRangeProps;
+    SortDirection: string,
     TimelineSearch?: string;
     Close?: () => void;
     UpdateSearch?: (startDate: Date, endDate: Date, selectedDuration: string, recordTypes: string[]) => void;
@@ -48,7 +49,7 @@ export interface ConfigItem {
     variant?: string; // Only for Text
   }
   
-export interface EventCardProps {
+export interface RecordCardProps {
     key: string,
     personaImage?: string,
     header: ConfigItem[];
@@ -65,5 +66,5 @@ export interface MonthGroup {
 
 export interface TimelineData {
     RawData: any[];
-    Events: any[];
+    Records: any[];
 }
