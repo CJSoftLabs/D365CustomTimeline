@@ -10,7 +10,6 @@ export interface TimelineProps {
     NoRecordsText: string;
     ItemsToDisplay: number;
     RawData?: any[];
-    HasMorePages?: boolean;
     HasMoreItems?: boolean;
     StartedToLoad?: boolean;
     Context: ComponentFramework.Context<IInputs>;
@@ -74,6 +73,7 @@ export interface EntityModel {
     Name: string;
     IsActivity: boolean;
     PrimaryEntity: string;
+    ActivityEntities?: string[];
     Select: string;
     Filter: EntityFilter;
     FieldMapping: EntityFieldMapping[];
@@ -88,6 +88,7 @@ export interface EntityFilterParameter {
     Sequence: number;
     Type: string;
     Variable: string;
+    IsDateValue?: boolean;
 }
 
 export interface EntityFieldMapping {

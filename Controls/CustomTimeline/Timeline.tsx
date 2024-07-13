@@ -140,7 +140,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                         </Stack>
                     </Stack>
                     <Stack>
-                            <Text>Displaying { this.state.Records.length } Records</Text>
+                            <Text>Showing { this.state.Records.length } Records</Text>
                         </Stack>
                 </Stack>
             </Stack>
@@ -159,10 +159,10 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
         }),
         async () => {
             try {
-                const nextItems =  await DataSource.GenerateOutputData(this.state.RawData?.slice(this.state.Records.length, this.state.Records.length + this.state.ItemsToDisplay) || [],  this.state.HasMorePages || false, false, this.state.ItemsToDisplay);
+                const nextItems =  await DataSource.GenerateOutputData(this.state.RawData?.slice(this.state.Records.length, this.state.Records.length + this.state.ItemsToDisplay) || [],  false, this.state.ItemsToDisplay);
                 const newRecords = this.state.Records.concat(nextItems.Records);
                 let HasMoreRecords = false;
-                if (this.state.HasMorePages || (this.state.RawData?.length || 0) > newRecords.length) {
+                if ((this.state.RawData?.length || 0) > newRecords.length) {
                     HasMoreRecords = true;
                 }
                 
@@ -225,7 +225,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
 
                 switch(operation.toLowerCase()){
                     case "gettimelinerecords":
-                        Data = await DataSource.FetchData(this.state.ControlModel.Entities, (sortDirection ?? ''), this.state.ItemsToDisplay);
+                        Data = await DataSource.FetchData(this.state.ControlModel.Entities, this.state.SearchProps, (sortDirection ?? ''), this.state.ItemsToDisplay);
                         SelectedMonth = {};
                         break;
                     case "sorttimelinerecords":
@@ -236,7 +236,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                         break;
                 }
                 let HasMoreRecords = false;
-                if (this.state.HasMorePages || Data.RawData.length > Data.Records.length) {
+                if (Data.RawData.length > Data.Records.length) {
                     HasMoreRecords = true;
                 }
 

@@ -1,63 +1,101 @@
-import { EntityModel, RecordData } from "../Interfaces/AppTypes";
+import { EntityModel, RecordData, SearchProps } from "../Interfaces/AppTypes";
 import { IInputs } from "../generated/ManifestTypes";
 
 export class DataSource {
   static Context: ComponentFramework.Context<IInputs>;
 
-  static async FetchData(entityList: EntityModel[], sortDirection: string, itemsToDisplay: number) {
-    let hasMorePages: boolean = true;      
-    let rawRecordsData: any[] = [];
+  static GetValue(obj: any, path: string): any {
+      // Split the path by '.' to handle nested properties
+      const keys = path.split('.');
+
+      // Iterate through the keys to get the value
+      let value = obj;
+      for (const key of keys) {
+          if (value[key] !== undefined) {
+              value = value[key];
+          } else {
+              // If the property does not exist, return undefined
+              return undefined;
+          }
+      }
+      return value;
+  }
+
+  static async FetchData(entityList: EntityModel[], searchProps: SearchProps, sortDirection: string, itemsToDisplay: number) {
     let recordsData: any[] = [];
+    let isActivityEnabled: boolean = entityList.some(entity => entity.Name === "Activity");
+    let hasSelection: boolean = (searchProps.SelectedRecordTypes.length > 0);
+    let hasActivitySelection: boolean = searchProps.SelectedRecordTypes.some(x => x.toLocaleLowerCase().startsWith("activity"));
+    let allCustomRecordTypes = searchProps.RecordTypes.filter(option => !option.itemType  && (option.key as string).toLowerCase().startsWith('custom-')).map(option => (option.key as string).replace("custom-", "").toLowerCase());
+    let allActivityRecordTypes = searchProps.RecordTypes.filter(option => !option.itemType  && (option.key as string).toLowerCase().startsWith('activity-')).map(option => (option.key as string).replace("activity-", "").toLowerCase());
 
     if (entityList) {
       for (const entity of entityList) {
-        let query: string = entity.Select;
-        let filter: string = entity.Filter.Query;
+        let entityName = entity.Name.toLowerCase();
+        if((hasSelection && searchProps.SelectedRecordTypes.some(x => x.toLocaleLowerCase().replace("custom-", "") === entityName)) || (hasSelection && hasActivitySelection && entityName === 'activity') || (!hasSelection && isActivityEnabled && entityName === 'activity') || (!hasSelection && allCustomRecordTypes.some(x => x === entityName))) {
+          let query: string = entity.Select;
+          let filter: string = entity.Filter.Query;
 
-        entity.Filter.Parameters.forEach(param => {
+          entity.Filter.Parameters.forEach(param => {
+            const placeholder = `{${param.Sequence}}`;
+            let value = '';
             if (param.Type === "Parameter" && param.Variable in DataSource.Context.parameters) {
-                const placeholder = `{${param.Sequence}}`;
-                const value = DataSource.Context.parameters[param.Variable as keyof IInputs]?.raw || '';
-                filter = filter.replace(placeholder, value);
-            }
-        });
-
-        filter = (filter.trim().length > 0) ? '&' + filter : '';
-
-        while (query !== '') {
-          try {
-            const result = await DataSource.Context.webAPI.retrieveMultipleRecords(entity.PrimaryEntity, "?" + query + filter);
-            rawRecordsData = rawRecordsData.concat(result.entities);
-
-            const nextLink = (result as any)["@odata.nextLink"];
-              if (nextLink) {
-                  query = nextLink;
-              } else {
-                  query = '';
+                value = DataSource.Context.parameters[param.Variable as keyof IInputs]?.raw || '';
+            } else if (param.Type === "SearchProperty" && searchProps) {
+              value = DataSource.GetValue(searchProps, param.Variable);
+              if(param.IsDateValue) {
+                value = new Date(value).toISOString();
               }
-          } catch(error) {
-            query = '';
-            console.error('Error fetching status:', error);
-          }
-        }
-
-        for (const element of rawRecordsData) {
-          let recordData: RecordData = {
-            entityName: entity.Name
-          };
-          entity.FieldMapping === null || entity.FieldMapping === void 0 ? void 0 : entity.FieldMapping.forEach(Mapping => {
-            recordData[Mapping.TargetField] = element[Mapping.SourceField];
+            }
+            filter = filter.replace(placeholder, (value ?? ''));
           });
-          recordsData.push(recordData);
+
+          if(entity.IsActivity) {
+            //Filter based on selected Activity Types
+            const filteredActivityTypes = hasSelection ? (searchProps.SelectedRecordTypes
+            .filter(type => type.startsWith('activity-'))
+            .map(type => type.replace('activity-', ''))) : allActivityRecordTypes;
+            const activityTypeFilter = filteredActivityTypes.map(type => `activitytypecode eq '${type}'`).join(' or ');
+
+            filter = ((filter.trim().length > 0) ? (filter + ' and (') : '$filter=(') + activityTypeFilter + ')';
+          }
+
+          filter = (filter.trim().length > 0) ? '&' + filter : '';
+
+          while (query !== '') {
+            try {
+              const result = await DataSource.Context.webAPI.retrieveMultipleRecords(entity.PrimaryEntity, "?" + query + filter);
+              for (const element of result.entities) {
+                let recordData: RecordData = {
+                  entityName: entity.Name
+                };
+                entity.FieldMapping === null || entity.FieldMapping === void 0 ? void 0 : entity.FieldMapping.forEach(Mapping => {
+                  recordData[Mapping.TargetField] = element[Mapping.SourceField];
+                });
+                recordsData.push(recordData);
+              }
+
+              const nextLink = (result as any)["@odata.nextLink"];
+                if (nextLink) {
+                    query = nextLink;
+                } else {
+                    query = '';
+                }
+            } catch(error) {
+              query = '';
+              console.error('Error fetching status:', error);
+            }
+          }
         }
       }
     }
+    //Sort the retreived records after collecting all types of records
     recordsData = (await DataSource.SortData(recordsData, sortDirection, true, 0)).RawData;
 
-    return this.GenerateOutputData(recordsData, hasMorePages, true, itemsToDisplay);
+    return this.GenerateOutputData(recordsData, true, itemsToDisplay);
   }
 
-  static async GenerateOutputData(SourceData: any[], HasMorePages: boolean, BuildRawData: boolean, itemsToDisplay: number) {
+  static async GenerateOutputData(SourceData: any[], BuildRawData: boolean, itemsToDisplay: number) {
     let UpdatedRecords: any[] = [];
     let Data:any = [];
     SourceData.forEach((item: any, index) => {
@@ -99,7 +137,7 @@ export class DataSource {
       return { RawData: Data, Records: [] };
     }
     
-    return this.GenerateOutputData(Data, false, true, itemsToDisplay);
+    return this.GenerateOutputData(Data, true, itemsToDisplay);
   }
 
   static async FilterData(Data: any[], itemsToDisplay: number) {
@@ -137,6 +175,6 @@ export class DataSource {
     }];
 
     // let ReturnData: any[] = [];
-    return this.GenerateOutputData(ReturnData, false, true, itemsToDisplay);
+    return this.GenerateOutputData(ReturnData, true, itemsToDisplay);
   }
 }
