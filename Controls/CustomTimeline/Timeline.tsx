@@ -22,6 +22,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
             StartedToLoad: false,
             Context: this.props.Context,
             ControlModel: this.props.ControlModel,
+            CommandbarConfigData: this.props.CommandbarConfigData,
         };
 
         DataSource.Context = this.state.Context;
@@ -122,10 +123,10 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                             <DateFilterPanel StartDate={ this.state.SearchProps.DateRange.StartDate } EndDate={ this.state.SearchProps.DateRange.EndDate } SelectedMonths={ this.state.SearchProps.DateRange.SelectedMonths }
                             UseCalendarMonth={ this.state.SearchProps.DateRange.UseCalendarMonth } UpdateSelectedMonths={ this.UpdateSelectedMonthsForSearch }></DateFilterPanel>
                         </Stack>)}
-                        <Stack tokens={{ childrenGap: 2 }} grow  onScroll={ this.HandleRecordListScroll }
+                        <Stack tokens={{ childrenGap: 2 }} grow onScroll={ this.HandleRecordListScroll } key={ 'stack_record_list' }
                             styles={ { root: { border: '1px solid #ccc', borderRadius: '4px', padding: '15px', overflowY: 'auto', minHeight: '55vh', maxHeight: '55vh' } }}>
                                 {this.state.Records.length > 0 && this.state.Records.map((item) => (
-                                    <RecordCard key={ item.key } personaImage={ item.personaImage } FooterCollapsed={ this.state.ShowHideFooter } header={ item.header } body={ item.body } footer={ item.footer }></RecordCard>
+                                    <RecordCard Key={ item.Key } PersonaImage={ item.PersonaImage } FooterCollapsed={ this.state.ShowHideFooter } Header={ item.Header } Body={ item.Body } Footer={ item.Footer } ConfigData={ this.state.CommandbarConfigData } Record={ item.Record }></RecordCard>
                                 ))}
                                 <Stack>
                                     {this.state.HasMoreItems && (

@@ -48,7 +48,7 @@ export class DataSource {
         let entityName = entity.Name.toLowerCase();
         if((hasSelection && searchProps.SelectedRecordTypes.some(x => x.toLocaleLowerCase().replace("custom-", "") === entityName)) || (hasSelection && hasActivitySelection && entityName === 'activity') || (!hasSelection && isActivityEnabled && entityName === 'activity') || (!hasSelection && allCustomRecordTypes.some(x => x === entityName))) {
           let query: string = entity.Select;
-          let filter: string = entity.Filter.Query;
+          let filter: string = entity.Filter.Target;
 
           entity.Filter.Parameters.forEach(param => {
             const placeholder = `{${param.Sequence}}`;
@@ -81,11 +81,14 @@ export class DataSource {
               const result = await DataSource.Context.webAPI.retrieveMultipleRecords(entity.PrimaryEntity, "?" + query + filter);
               for (const element of result.entities) {
                 let recordData: RecordData = {
-                  entityName: entity.Name
+                  entityName: entity.PrimaryEntity
                 };
                 entity.FieldMapping === null || entity.FieldMapping === void 0 ? void 0 : entity.FieldMapping.forEach(Mapping => {
                   recordData[Mapping.TargetField] = element[Mapping.SourceField];
                 });
+                if(entity.IsActivity) {
+                  recordData["entityName"] = element["activitytypecode"];
+                }
                 recordsData.push(recordData);
               }
 
@@ -121,15 +124,15 @@ export class DataSource {
             key: (item["entityName"] + '_Record_' + item["id"]),
             //personaImage: 'Database',
             FooterCollapsed: false,
-            header: [{ type: 'Text', variant:'medium', content: ('Record Date: ' + item["createdOn"]), sequence: 1, isBold: true }],
-            body: [{ type: 'Text', content: item["name"], sequence: 1 }, { type: 'Text', content: item["other"], sequence: 2 }],
-            footer: [{ type: 'Text', content: 'Created On: ' + item["createdOn"], sequence: 1 }, { type: 'Text', content: 'Modified On: ' + item["modifiedOn"], sequence: 2 }]
+            Header: [{ type: 'Text', variant:'medium', content: ('Record Date: ' + item["createdOn"]), sequence: 1, isBold: true }],
+            Body: [{ type: 'Text', content: item["name"], sequence: 1 }, { type: 'Text', content: item["other"], sequence: 2 }],
+            Footer: [{ type: 'Text', content: 'Created On: ' + item["createdOn"], sequence: 1 }, { type: 'Text', content: 'Modified On: ' + item["modifiedOn"], sequence: 2 }],
+            Record: item
         });
       }
     });
 
     return { RawData: Data, Records: UpdatedRecords, UnfilteredData: (IsFilterCall ? UnfilteredData : Data) };
-
   }
 
   static async SortData(Data: any[], sortDirection: string, returnSortedDataAsIs: boolean, itemsToDisplay: number) {

@@ -15,6 +15,7 @@ export interface TimelineProps {
     StartedToLoad?: boolean;
     Context: ComponentFramework.Context<IInputs>;
     ControlModel: AppModel;
+    CommandbarConfigData: CommandBarConfigItem[];
 }
 
 export interface DateRangeProps {
@@ -50,15 +51,25 @@ export interface ConfigItem {
     isBold?: boolean; // New property to indicate if the text should be bold
     variant?: string; // Only for Text
   }
+
+export interface CommandBarConfigItem {
+    Key: string;
+    IconName: string;
+    Title: string;
+    OperationType: string;
+    Url: ParameterizedTarget;
+}
   
 export interface RecordCardProps {
-    key: string,
-    personaImage?: string,
-    header: ConfigItem[];
-    body: ConfigItem[];
-    footer: ConfigItem[];
-    commandbarItems?: ICommandBarItemProps;
-    FooterCollapsed?: boolean
+    Key: string,
+    PersonaImage?: string,
+    Header: ConfigItem[];
+    Body: ConfigItem[];
+    Footer: ConfigItem[];
+    CommandbarItems?: ICommandBarItemProps[];
+    ConfigData: CommandBarConfigItem[];
+    FooterCollapsed?: boolean;
+    Record: any;
 }
 
 export interface MonthGroup {
@@ -78,16 +89,16 @@ export interface EntityModel {
     PrimaryEntity: string;
     ActivityEntities?: string[];
     Select: string;
-    Filter: EntityFilter;
+    Filter: ParameterizedTarget;
     FieldMapping: EntityFieldMapping[];
 }
 
-export interface EntityFilter {
-    Query: string;
-    Parameters: EntityFilterParameter[];
+export interface ParameterizedTarget {
+    Target: string;
+    Parameters: DynamicParameter[];
 }
 
-export interface EntityFilterParameter {
+export interface DynamicParameter {
     Sequence: number;
     Type: string;
     Variable: string;
