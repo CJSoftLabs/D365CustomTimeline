@@ -11,7 +11,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
         super(props);
         this.state = {
             SearchProps: this.props.SearchProps,
-            FilterPanelVisible: false,
+            FilterPanelVisible: this.props.FilterPanelVisible,
             ShowHideFooter: this.props.ShowHideFooter,
             IsLoading: true,
             NoRecordsText: this.props.NoRecordsText,
@@ -112,7 +112,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                         (<SearchPanel DurationChoices={this.state.SearchProps.DurationChoices} RecordTypes={this.state.SearchProps.RecordTypes}
                             SelectedDuration={this.state.SearchProps.SelectedDuration} SelectedRecordTypes={this.state.SearchProps.SelectedRecordTypes}
                             SearchPanelVisible={this.state.SearchProps.SearchPanelVisible } Close={ this.HideSearchPanelVisibility } DateRange={ this.state.SearchProps.DateRange }
-                            UpdateSearch={ this.SearchButtonClickOnSearchPanel } SortDirection={ this.state.SearchProps.SortDirection }></SearchPanel>)}
+                            UpdateSearch={ this.SearchButtonClickOnSearchPanel } SortDirection={ this.state.SearchProps.SortDirection } SearchFields={this.state.SearchProps.SearchFields}></SearchPanel>)}
                     <Stack grow>
                         <SearchBox placeholder='Search timeline' styles={this.searchboxStyles} onSearch={ this.UpdateSearchTextOnSearch } 
                         onBlur={ this.UpdateSearchTextOnBlur } onClear={ this.UpdateSearchTextOnClear } value={this.state.SearchProps.TimelineSearch}></SearchBox>
@@ -159,7 +159,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
         }),
         async () => {
             try {
-                const nextItems =  await DataSource.GenerateOutputData(this.state.RawData?.slice(this.state.Records.length, this.state.Records.length + this.state.ItemsToDisplay) || [],  false, this.state.ItemsToDisplay);
+                const nextItems =  await DataSource.GenerateOutputData(this.state.RawData?.slice(this.state.Records.length, this.state.Records.length + this.state.ItemsToDisplay) || [],  false, this.state.ItemsToDisplay, false, []);
                 const newRecords = this.state.Records.concat(nextItems.Records);
                 let HasMoreRecords = false;
                 if ((this.state.RawData?.length || 0) > newRecords.length) {
@@ -219,7 +219,8 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
             try {
                 let Data: TimelineData = {
                     RawData: [],
-                    Records: []
+                    Records: [],
+                    UnfilteredData: [],
                 };
                 let SelectedMonth: any = this.state.SearchProps.DateRange.SelectedMonths;
 
@@ -232,7 +233,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                         Data = await DataSource.SortData(this.state.RawData || [], sortDirection || 'asc', false, this.state.ItemsToDisplay);
                         break;
                     case "filtertimelinerecords":
-                        Data = await DataSource.FilterData(this.state.RawData || [], this.state.ItemsToDisplay);
+                        Data = await DataSource.FilterData(this.state.UnfilteredData || [], this.state.SearchProps.DateRange.SelectedMonths, this.state.ItemsToDisplay, this.state.SearchProps.TimelineSearch || '', this.state.SearchProps.SearchFields);
                         break;
                 }
                 let HasMoreRecords = false;
@@ -246,6 +247,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                     Records: Data.Records,
                     IsLoading: false,
                     RawData: Data.RawData,
+                    UnfilteredData: Data.UnfilteredData,
                     HasMoreItems: HasMoreRecords,
                     SearchProps: {
                         ...prevState.SearchProps,
@@ -302,7 +304,8 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                 ...prevState.SearchProps,
                 DateRange: {
                     StartDate: startDate,
-                    EndDate: endDate
+                    EndDate: endDate,
+                    UseCalendarMonth: prevState.SearchProps.DateRange.UseCalendarMonth
                 },
                 SelectedRecordTypes: recordTypes,
                 SelectedDuration: selectedDuration
@@ -362,10 +365,10 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                     StartDate: prevState.SearchProps.DateRange.StartDate,
                     EndDate: prevState.SearchProps.DateRange.EndDate,
                     SelectedMonths: SelectedMonths,
+                    UseCalendarMonth: prevState.SearchProps.DateRange.UseCalendarMonth
                 }
             },
             HasMoreItems: false,
-            //this.state.SearchProps.DateRange.SelectedMonths
         }),
         () => {
             // This callback function is called after the state has been updated

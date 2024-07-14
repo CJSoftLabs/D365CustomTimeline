@@ -10,6 +10,7 @@ export interface TimelineProps {
     NoRecordsText: string;
     ItemsToDisplay: number;
     RawData?: any[];
+    UnfilteredData?: any[];
     HasMoreItems?: boolean;
     StartedToLoad?: boolean;
     Context: ComponentFramework.Context<IInputs>;
@@ -35,6 +36,7 @@ export interface SearchProps {
     DateRange: DateRangeProps;
     SortDirection: string,
     TimelineSearch?: string;
+    SearchFields: string[];
     Close?: () => void;
     UpdateSearch?: (startDate: Date, endDate: Date, selectedDuration: string, recordTypes: string[]) => void;
 }
@@ -67,6 +69,7 @@ export interface MonthGroup {
 export interface TimelineData {
     RawData: any[];
     Records: any[];
+    UnfilteredData: any[];
 }
 
 export interface EntityModel {

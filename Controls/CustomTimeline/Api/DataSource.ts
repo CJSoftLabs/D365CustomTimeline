@@ -21,7 +21,21 @@ export class DataSource {
       return value;
   }
 
+  static GetMonthIndex(month: string): number {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    return months.indexOf(month);
+  }
+
+  static ParseYearMonth(yearMonth: string): { year: number, month: number } {
+    const [year, month] = yearMonth.split('-');
+    return { year: parseInt(year, 10), month: DataSource.GetMonthIndex(month) };
+  }
+
   static async FetchData(entityList: EntityModel[], searchProps: SearchProps, sortDirection: string, itemsToDisplay: number) {
+    //Called when,
+    //1) The control is loaded (or)
+    //2) The refresh button is clicked in the main panel (or)
+    //3) Search button is clicked in the Search Panel
     let recordsData: any[] = [];
     let isActivityEnabled: boolean = entityList.some(entity => entity.Name === "Activity");
     let hasSelection: boolean = (searchProps.SelectedRecordTypes.length > 0);
@@ -92,17 +106,17 @@ export class DataSource {
     //Sort the retreived records after collecting all types of records
     recordsData = (await DataSource.SortData(recordsData, sortDirection, true, 0)).RawData;
 
-    return this.GenerateOutputData(recordsData, true, itemsToDisplay);
+    return this.GenerateOutputData(recordsData, true, itemsToDisplay, false, []);
   }
 
-  static async GenerateOutputData(SourceData: any[], BuildRawData: boolean, itemsToDisplay: number) {
+  static async GenerateOutputData(SourceData: any[], BuildRawData: boolean, ItemsToDisplay: number, IsFilterCall: boolean, UnfilteredData: any[]) {
     let UpdatedRecords: any[] = [];
     let Data:any = [];
     SourceData.forEach((item: any, index) => {
       if(BuildRawData) {
         Data.push(item);
       }
-      if(index < itemsToDisplay) {
+      if(index < ItemsToDisplay) {
         UpdatedRecords.push({
             key: (item["entityName"] + '_Record_' + item["id"]),
             //personaImage: 'Database',
@@ -114,11 +128,12 @@ export class DataSource {
       }
     });
 
-    return { RawData: Data, Records: UpdatedRecords };
+    return { RawData: Data, Records: UpdatedRecords, UnfilteredData: (IsFilterCall ? UnfilteredData : Data) };
 
   }
 
   static async SortData(Data: any[], sortDirection: string, returnSortedDataAsIs: boolean, itemsToDisplay: number) {
+    //Called when the sort asc or sort desc button is clicked in the main panel
     if(Data !== undefined) {
       Data = Data.sort((a, b) => {
           const dateA = new Date(a["sortDateValue"]).getTime();
@@ -134,47 +149,38 @@ export class DataSource {
       });
     }
     if(returnSortedDataAsIs) {
-      return { RawData: Data, Records: [] };
+      return { RawData: Data, Records: [], UnfilteredData: Data };
     }
     
-    return this.GenerateOutputData(Data, true, itemsToDisplay);
+    return this.GenerateOutputData(Data, true, itemsToDisplay, false, []);
   }
 
-  static async FilterData(Data: any[], itemsToDisplay: number) {
-    let ReturnData : any[] = [{
-      id: "3a504d9b-7f21-4ec2-a1fc-28ed2dde0c2a",
-      name: "tellus in sagittis dui vel nisl",
-      other: "pretium quis lectus suspendisse potenti in eleifend quam a odio in hac habitasse platea dictumst maecenas ut massa quis augue luctus tincidunt nulla mollis molestie lorem quisque ut erat curabitur gravida nisi at nibh in hac habitasse platea dictumst aliquam augue quam sollicitudin vitae consectetuer eget rutrum",
-      createdOn: "2015-06-02T21:50:08Z",
-      sortDateValue: "2015-06-02T21:50:08Z",
-      modifiedOn: "2015-06-02T21:50:08Z"
-    },
-    {
-      id: "bc7c6ad5-14a3-4701-a263-46ecabfaf210",
-      name: "amet erat nulla tempus vivamus in",
-      other: "consectetuer eget rutrum at lorem integer tincidunt ante vel ipsum praesent blandit lacinia erat vestibulum sed magna at nunc commodo placerat praesent blandit nam nulla integer pede justo lacinia eget tincidunt",
-      createdOn: "2018-03-11T08:01:33Z",
-      sortDateValue: "2018-03-11T08:01:33Z",
-      modifiedOn: "2018-03-11T08:01:33Z"
-    },
-    {
-      id: "d5a5ebe7-59aa-44ba-b3ee-79e2abc5edc6",
-      name: "ante vel ipsum praesent blandit lacinia erat vestibulum",
-      other: "magnis dis parturient montes nascetur ridiculus mus etiam vel augue vestibulum rutrum rutrum neque aenean auctor gravida sem praesent id massa id nisl venenatis lacinia aenean sit amet justo morbi ut odio cras mi pede malesuada in imperdiet et commodo vulputate justo in blandit ultrices enim lorem ipsum dolor sit amet consectetuer adipiscing elit proin interdum mauris non ligula pellentesque ultrices phasellus id sapien in sapien iaculis congue vivamus metus arcu adipiscing molestie hendrerit at vulputate vitae nisl aenean lectus pellentesque eget nunc donec quis orci eget orci vehicula condimentum curabitur",
-      createdOn: "2020-11-10T01:22:22Z",
-      sortDateValue: "2020-11-10T01:22:22Z",
-      modifiedOn: "2020-11-10T01:22:22Z"
-    },
-    {
-      id: "2475ff95-612e-4df7-8b14-58a6909aef9a",
-      name: "et ultrices posuere cubilia",
-      other: "pede malesuada in imperdiet et commodo vulputate justo in blandit ultrices enim lorem ipsum dolor sit amet consectetuer adipiscing elit proin interdum mauris non ligula pellentesque ultrices phasellus id sapien in sapien iaculis congue vivamus metus arcu adipiscing molestie hendrerit at vulputate vitae nisl aenean lectus pellentesque eget nunc donec quis orci eget orci vehicula condimentum curabitur in libero ut massa volutpat convallis morbi odio odio elementum eu interdum eu tincidunt in leo maecenas pulvinar lobortis est phasellus",
-      createdOn: "2014-11-13T23:52:58Z",
-      sortDateValue: "2014-11-13T23:52:58Z",
-      modifiedOn: "2014-11-13T23:52:58Z"
-    }];
+  static async FilterData(Data: any[], SelectedMonths: any, ItemsToDisplay: number, SearchText: string, SearchFields: string[]) {
+    //Called when,
+    //1) The Search text is provided and searched (or)
+    //2) The Search text is cleared (or)
+    //3) The Apply button in the DateFilter panel is clicked
+    let ReturnData: any[] = [];
+    const ParsedYearMonths = Object.keys(SelectedMonths).filter(key => SelectedMonths[key] === true).map(DataSource.ParseYearMonth.bind(this));
 
-    // let ReturnData: any[] = [];
-    return this.GenerateOutputData(ReturnData, true, itemsToDisplay);
+    //Filter based on selected months
+    if(ParsedYearMonths.length > 0) {
+      ReturnData = Data.filter(obj => {
+        const SortDate = new Date(obj.sortDateValue);
+        const objYear = SortDate.getFullYear();
+        const objMonth = SortDate.getMonth(); // getMonth returns 0-based month index
+        
+        return ParsedYearMonths.some((ym: { year: any; month: any; }) => ym.year === objYear && ym.month === objMonth);
+      });
+    } else {
+      ReturnData = Data;
+    }
+
+    //Filter based on search text
+    if((SearchText ?? '').trim().length > 0) {
+      ReturnData = ReturnData.filter(item => SearchFields.some(field => item[field]?.toString().toLowerCase().includes(SearchText.toLowerCase())));
+    }
+
+    return this.GenerateOutputData(ReturnData, true, ItemsToDisplay, true, Data);
   }
 }
