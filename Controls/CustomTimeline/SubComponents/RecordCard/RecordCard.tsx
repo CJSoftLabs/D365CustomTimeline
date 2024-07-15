@@ -18,11 +18,8 @@ export class RecordCard extends React.Component<RecordCardProps, RecordCardProps
 
     this.state = {
       Key: this.props.Key,
-      PersonaImage: this.props.PersonaImage,
       PersonaBackgroundValue: (entity ? entity.ColorCode : 0),
-      Header: this.props.Header,
-      Body: this.props.Body,
-      Footer: this.props.Footer,
+      RecordUiTemplate: this.props.RecordUiTemplate,
       FooterCollapsed: this.props.FooterCollapsed,
       ConfigData: this.props.ConfigData,
       CommandbarItems: commandBarItems,
@@ -85,6 +82,19 @@ export class RecordCard extends React.Component<RecordCardProps, RecordCardProps
     return items
       .sort((a, b) => a.sequence - b.sequence)
       .map((item, index) => {
+        let content = '';
+        if(item.content) {
+          content = item.content.Target;
+          item.content.Parameters.forEach(param => {
+            const placeholder = `{${param.Sequence}}`;
+            let value = '';
+            if (param.Type === "Parameter" && this.state.Record) {
+                value = this.state.Record[param.Variable] || '';
+            }
+            content = content.replace(placeholder, (value ?? ''));
+          });
+        }
+
         const textStyle = item.isBold ? { root: { fontWeight: 'bold' } } : { root: {} };
         const combinedStyles = applyCardTextStyles
           ? { ...textStyle, ...this.cardTextStyles }
@@ -94,7 +104,7 @@ export class RecordCard extends React.Component<RecordCardProps, RecordCardProps
           case 'Text':
             return (
               <Text key={index} styles={combinedStyles} variant={ item.variant  as keyof IFontStyles | undefined }>
-                {item.content}
+                {content}
               </Text>
             );
           case 'Icon':
@@ -102,13 +112,13 @@ export class RecordCard extends React.Component<RecordCardProps, RecordCardProps
           case 'Link':
             return (
               <Link key={index} href={item.url} styles={combinedStyles}>
-                {item.content}
+                {content}
               </Link>
             );
           case 'Label':
             return (
               <Label key={index} styles={combinedStyles}>
-                {item.content}
+                {content}
               </Label>
             );
           default:
@@ -122,7 +132,6 @@ export class RecordCard extends React.Component<RecordCardProps, RecordCardProps
         <Stack horizontal key={ this.state.Key }>
             <Stack verticalAlign='center' horizontalAlign='center' styles={ { root: { width: '50px', marginLeft: '30px' } } }>
               <Persona
-                //imageUrl= {this.state.PersonaImage}
                 size={ PersonaSize.size56 }
                 presence={PersonaPresence.none}
                 initialsColor={this.state.PersonaBackgroundValue}
@@ -137,7 +146,7 @@ export class RecordCard extends React.Component<RecordCardProps, RecordCardProps
               <Stack horizontal styles={ this.genericTextStyles }>
                 {/* Header */}
                 <Stack horizontal grow verticalAlign='center'>
-                  {this.renderConfigItems(this.state.Header, false)}
+                  {this.renderConfigItems(this.state.RecordUiTemplate.Header || [], false)}
                 </Stack>
                 {/* CommandBar */}
                 <Stack horizontalAlign='end'>
@@ -146,13 +155,13 @@ export class RecordCard extends React.Component<RecordCardProps, RecordCardProps
               </Stack>
               {/* Body */}
               <Stack styles={ this.genericTextStyles }>
-                {this.renderConfigItems(this.state.Body, true)}
+                {this.renderConfigItems(this.state.RecordUiTemplate.Body || [], true)}
               </Stack>
               {/* Footer */}
-              {this.state.Footer.length > 0 && (
+              {(this.state.RecordUiTemplate.Footer || []).length > 0 && (
                 <Stack>
                   <Stack horizontal verticalAlign="center" styles={ this.genericTextStyles }>
-                    {!this.state.FooterCollapsed && <Stack>{this.renderConfigItems(this.state.Footer, true)}</Stack>}
+                    {!this.state.FooterCollapsed && <Stack>{this.renderConfigItems(this.state.RecordUiTemplate.Footer || [], true)}</Stack>}
                   </Stack>
                   <Stack horizontal onClick={ this.ToggleFooterCollapse } styles={ this.footerTextStylesCollapse }>
                     <Stack grow verticalAlign='center'>

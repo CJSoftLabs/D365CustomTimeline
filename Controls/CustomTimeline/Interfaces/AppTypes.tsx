@@ -44,7 +44,7 @@ export interface SearchProps {
 
 export interface ConfigItem {
     type: 'Text' | 'Icon' | 'Link' | 'Label';
-    content?: string; // Empty or Null only for Space Type or NewLine Type
+    content?: ParameterizedTarget; // Empty or Null only for Space Type or NewLine Type
     sequence: number;
     url?: string; // Only for Link
     iconName?: string; // Only for Icon
@@ -61,12 +61,12 @@ export interface CommandBarConfigItem {
 }
   
 export interface RecordCardProps {
-    Key: string,
-    PersonaImage?: string,
-    PersonaBackgroundValue?: number,
-    Header: ConfigItem[];
-    Body: ConfigItem[];
-    Footer: ConfigItem[];
+    Key: string;
+    PersonaBackgroundValue?: number;
+    RecordUiTemplate: UiTemplate;
+    // Header: ConfigItem[];
+    // Body: ConfigItem[];
+    // Footer: ConfigItem[];
     CommandbarItems?: ICommandBarItemProps[];
     ConfigData: CommandBarConfigItem[];
     FooterCollapsed?: boolean;
@@ -114,7 +114,7 @@ export interface EntityFieldMapping {
 
 export interface AppModel {
     Fields?: string[];
-    UiTemplate: any;
+    RecordUiTemplate: UiTemplate;
     Entities: EntityModel[];
     PersonaColorCodes: any[];
 }
@@ -122,4 +122,10 @@ export interface AppModel {
 export interface RecordData {
     entityName: string;
     [key: string]: any;
+}
+
+export interface UiTemplate {
+    Header: ConfigItem[];
+    Body: ConfigItem[];
+    Footer: ConfigItem[];
 }

@@ -109,12 +109,12 @@ export class DataSource {
       }
     }
     //Sort the retreived records after collecting all types of records
-    recordsData = (await DataSource.SortData(recordsData, sortDirection, true, 0)).RawData;
+    recordsData = (await DataSource.SortData(recordsData, [], sortDirection, true, 0)).RawData;
 
-    return this.GenerateOutputData(recordsData, true, itemsToDisplay, false, []);
+    return this.GenerateOutputData(recordsData, true, itemsToDisplay, []);
   }
 
-  static async GenerateOutputData(SourceData: any[], BuildRawData: boolean, ItemsToDisplay: number, IsFilterCall: boolean, UnfilteredData: any[]) {
+  static async GenerateOutputData(SourceData: any[], BuildRawData: boolean, ItemsToDisplay: number, UnfilteredData: any[]) {
     let UpdatedRecords: any[] = [];
     let Data:any = [];
     SourceData.forEach((item: any, index) => {
@@ -125,38 +125,45 @@ export class DataSource {
         UpdatedRecords.push({
             key: (item["entityName"] + '_Record_' + item["id"]),
             FooterCollapsed: false,
-            Header: [{ type: 'Text', variant:'medium', content: ('Record Date: ' + item["createdOn"]), sequence: 1, isBold: true }],
-            Body: [{ type: 'Text', content: item["name"], sequence: 1 }, { type: 'Text', content: item["other"], sequence: 2 }],
-            Footer: [{ type: 'Text', content: 'Created On: ' + item["createdOn"], sequence: 1 }, { type: 'Text', content: 'Modified On: ' + item["modifiedOn"], sequence: 2 }],
             Record: item
         });
       }
     });
 
-    return { RawData: Data, Records: UpdatedRecords, UnfilteredData: (IsFilterCall ? UnfilteredData : Data) };
+    return { RawData: Data, Records: UpdatedRecords, UnfilteredData: (UnfilteredData.length > 0 ? UnfilteredData : Data) };
   }
 
-  static async SortData(Data: any[], sortDirection: string, returnSortedDataAsIs: boolean, itemsToDisplay: number) {
+  static async SortData(Data: any[], UnfilteredData: any[], sortDirection: string, returnSortedDataAsIs: boolean, itemsToDisplay: number) {
     //Called when the sort asc or sort desc button is clicked in the main panel
     if(Data !== undefined) {
-      Data = Data.sort((a, b) => {
-          const dateA = new Date(a["sortDateValue"]).getTime();
-          const dateB = new Date(b["sortDateValue"]).getTime();
-      
-          if (sortDirection === 'asc') {
-            return dateA - dateB;
-          } else if (sortDirection === 'desc') {
-            return dateB - dateA;
-          } else {
-            throw new Error('Invalid direction. Use "asc" for ascending or "desc" for descending.');
-          }
-      });
+      Data = await DataSource.SortRecords(Data, sortDirection);
+    }
+    if(UnfilteredData !== undefined) {
+      UnfilteredData = await DataSource.SortRecords(UnfilteredData, sortDirection);
     }
     if(returnSortedDataAsIs) {
-      return { RawData: Data, Records: [], UnfilteredData: Data };
+      return { RawData: Data, Records: [], UnfilteredData: [] };
     }
     
-    return this.GenerateOutputData(Data, true, itemsToDisplay, false, []);
+    return this.GenerateOutputData(Data, true, itemsToDisplay, UnfilteredData);
+  }
+
+  static async SortRecords(data: any[], sortDirection: string) {
+    if (data !== undefined) {
+      return data.sort((a, b) => {
+        const dateA = new Date(a["sortDateValue"]).getTime();
+        const dateB = new Date(b["sortDateValue"]).getTime();
+  
+        if (sortDirection === 'asc') {
+          return dateA - dateB;
+        } else if (sortDirection === 'desc') {
+          return dateB - dateA;
+        } else {
+          throw new Error('Invalid direction. Use "asc" for ascending or "desc" for descending.');
+        }
+      });
+    }
+    return data;
   }
 
   static async FilterData(Data: any[], SelectedMonths: any, ItemsToDisplay: number, SearchText: string, SearchFields: string[]) {
@@ -185,6 +192,6 @@ export class DataSource {
       ReturnData = ReturnData.filter(item => SearchFields.some(field => item[field]?.toString().toLowerCase().includes(SearchText.toLowerCase())));
     }
 
-    return this.GenerateOutputData(ReturnData, true, ItemsToDisplay, true, Data);
+    return this.GenerateOutputData(ReturnData, true, ItemsToDisplay, Data);
   }
 }

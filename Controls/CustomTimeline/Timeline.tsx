@@ -98,8 +98,9 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                         <Stack horizontal horizontalAlign='end'>
                             <IconButton iconProps={{ iconName: 'FilterSettings' }} title="Search Settings" ariaLabel="Search Settings" onClick={this.ToggleSearchPanelVisibility} />
                             <IconButton iconProps={{ iconName: 'Refresh' }} title="Refresh" ariaLabel="Refresh" onClick={ this.GetTimelineRecords } />
+                            { (this.state.ControlModel.RecordUiTemplate.Footer || []).length > 0 &&
                             <IconButton iconProps={ this.state.ShowHideFooter ? this.CollapsedIcon : this.ExpandedIcon } title={ this.state.ShowHideFooter ? 'Expand' : 'Collapse' } 
-                            aria-label={ this.state.ShowHideFooter ? 'Expand' : 'Collapse' } onClick={ this.ToggleFooterVisibility } />
+                            aria-label={ this.state.ShowHideFooter ? 'Expand' : 'Collapse' } onClick={ this.ToggleFooterVisibility } /> }
                             <IconButton iconProps={{ iconName: 'Sort' }} title="Sort" ariaLabel="Sort" menuProps={this.sortMenuProps} />
                         </Stack>
                     </Stack>
@@ -126,7 +127,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                         <Stack tokens={{ childrenGap: 2 }} grow onScroll={ this.HandleRecordListScroll } key={ 'stack_record_list' }
                             styles={ { root: { border: '1px solid #ccc', borderRadius: '4px', padding: '15px', overflowY: 'auto', minHeight: '50vh', maxHeight: '50vh' } }}>
                                 {this.state.Records.length > 0 && this.state.Records.map((item) => (
-                                    <RecordCard Key={ item.Key } PersonaImage={ item.PersonaImage } PersonaColorCodes={ this.state.ControlModel.PersonaColorCodes } FooterCollapsed={ this.state.ShowHideFooter } Header={ item.Header } Body={ item.Body } Footer={ item.Footer } ConfigData={ this.state.CommandbarConfigData } Record={ item.Record }></RecordCard>
+                                    <RecordCard Key={ item.Key } PersonaColorCodes={ this.state.ControlModel.PersonaColorCodes } FooterCollapsed={ this.state.ShowHideFooter } RecordUiTemplate={ this.state.ControlModel.RecordUiTemplate } ConfigData={ this.state.CommandbarConfigData } Record={ item.Record }></RecordCard>
                                 ))}
                                 <Stack>
                                     {this.state.HasMoreItems && (
@@ -160,7 +161,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
         }),
         async () => {
             try {
-                const nextItems =  await DataSource.GenerateOutputData(this.state.RawData?.slice(this.state.Records.length, this.state.Records.length + this.state.ItemsToDisplay) || [],  false, this.state.ItemsToDisplay, false, []);
+                const nextItems =  await DataSource.GenerateOutputData(this.state.RawData?.slice(this.state.Records.length, this.state.Records.length + this.state.ItemsToDisplay) || [],  false, this.state.ItemsToDisplay, []);
                 const newRecords = this.state.Records.concat(nextItems.Records);
                 let HasMoreRecords = false;
                 if ((this.state.RawData?.length || 0) > newRecords.length) {
@@ -202,7 +203,16 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
     }
 
     SortTimelineRecords(sortDirection: string) {
-        this.GetData("SortTimelineRecords", sortDirection);
+        this.setState((prevState) => ({
+            ...prevState,
+            SearchProps: {
+                ...prevState.SearchProps,
+                SortDirection: sortDirection,
+            },
+        }),
+        async () => {
+            this.GetData("SortTimelineRecords", sortDirection);
+        });
     }
 
     FilterTimelineRecords() {
@@ -231,7 +241,8 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                         SelectedMonth = {};
                         break;
                     case "sorttimelinerecords":
-                        Data = await DataSource.SortData(this.state.RawData || [], sortDirection || 'asc', false, this.state.ItemsToDisplay);
+                        Data = await DataSource.SortData(this.state.RawData || [], this.state.UnfilteredData || [], sortDirection || 'asc', false, this.state.ItemsToDisplay);
+                        Data.UnfilteredData = this.state.UnfilteredData || [];
                         break;
                     case "filtertimelinerecords":
                         Data = await DataSource.FilterData(this.state.UnfilteredData || [], this.state.SearchProps.DateRange.SelectedMonths, this.state.ItemsToDisplay, this.state.SearchProps.TimelineSearch || '', this.state.SearchProps.SearchFields);
