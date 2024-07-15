@@ -1,0 +1,66 @@
+**TimelineProps:** Top Object holding the config for the Custom D365 Timeline
+  - **Attributes:**
+    - **FilterPanelVisible:** Boolean value indicating the default visibility of the Filter Panel (Left side panel).
+    - **ItemsToDisplay:** Number value indicating the count of records to be appended to the list of visible Record cards.
+    - **NoRecordsText:** Text which will be displayed when there are no results due to a search or a filter.
+    - **ShowHideFooter:** Boolean value indicating the default state of the footer of the Record card.
+    - **CommandbarConfigData:** Array of Object for mapping the Commands in each of the Record card.
+      - **Attributes:**
+        - **IconName:** FluentUI Icon to be displayed.
+        - **Key:** Key for the CommandBar Item.
+        - **OperationType:** Currently supports value "**openUrl**" which indicates for opening the templated url.
+        - **Url:** Object to get the url generated dynamically using the template.
+    - **ControlModel:** Object to hold the Entities, PersonaMapping & UI Template for the Record cards.
+      - **Attributes:**
+        - **Entities:** Array of Objects holding the Field Mapping, Filter, Fields to select, etc. There should be only one entry for Activities and type of activities to be used in the Timeline control is managed as part of RecordTypes attribute of TimelineProps.SearchProps object.
+          - **Attributes:**
+            - **Name:** Display name of the entity being used.
+            - **PrimaryEntity:** Logical name of the entity being used.
+            - **IsActivity:** True for mapping the fields for the selected activity types.
+            - **FieldMapping:** Mapping of fields from the source object to the target object.
+            - **Filter:** Templated string for filtering the records in the **webAPI.retrieveMultipleRecords** calls.
+            - **Select:** Fields to be selected for the entity in the **webAPI.retrieveMultipleRecords** calls.
+        - **PersonaColorCodes:** Background color to be used for the Persona Object.
+          - **Attributes:**
+            - **ColorCode:** Integer value corresponding to the PersonaInitialsColor enum in FluentUI. Below are the supported values.
+              - lightBlue = 0
+              - blue = 1
+              - darkBlue = 2
+              - teal = 3
+              - lightGreen = 4
+              - green = 5
+              - darkGreen = 6
+              - lightPink = 7
+              - pink = 8
+              - magenta = 9
+              - purple = 10
+              - orange = 12
+              - darkRed = 14
+              - violet = 16
+              - lightRed = 17
+              - gold = 18
+              - burgundy = 19
+              - warmGray = 20
+              - coolGray = 21
+              - cyan = 23
+              - rust = 24
+          - **EntityName:** Entity logical name of the entity. This is mandated for each entity for the UI to render the Persona's background color. If there is no mapping for any entity which is rendered, it will **default to (lightBlue = 0)**.
+        - **RecordUiTemplate:** UI template to be used for rendering the record card.
+          - **Attributes:**
+            - **Header:** Array of type ConfigItem holding the Header components.
+            - **Body:** Array of type ConfigItem holding the Body components.
+            - **Footer:** Array of type ConfigItem holding the Footer components.
+    - **SearchProps:** Object used to hold the properties for the Search Panel, Search and Filter functionalities.
+      - **Attributes:**
+        - **DateRange:** Object holding the start date, end date for the search functionality.
+          - **Attributes:**
+            - **StartDate:** Start date used for the search functionality. Always limited to the current date as its end date and appropriate start date based on the **SelectedDuration** attribute.
+            - **EndDate:** End date used for the search functionality. Always limited to the current date as its end date.
+            - **UseCalendarMonth:** Boolean variable used to indicate the type of date range to be used. If set to **false**, it will take the end date as current date and the start date as **current date - X Months** (based on selection). If set to **true**, it will set the end date as the current date and end date as **1st of the current date - (X-1) Months**.
+        - **DurationChoices:** Key-Text pair used to set the **Duration field in the Search Panel**. Currently the values in the config includes **"3m"-"Last 3 Months", "6m"-"Last 6 Months", "9m"-"Last 9 Months" & Custom date range**.
+        - **RecordTypes:** Key-Text pair used to set the **Record Type field in the Search Panel**.
+        - **SearchFields:** String array which includes the name of fields which will be used for searching the data from the list.
+        - **SearchPanelVisible:** Boolean value indicating the **default visibility of the Search Panel**. 
+        - **SelectedDuration:** String attribute holding the **selected value of the Duration field**.
+        - **SelectedRecordTypes:** String array holding the **selected value of the RecordType field**.
+        - **SortDirection:** String indicating the Sort Direction of the data which is used for displaying in the list. It supports two values - **"asc"** for Ascending and **"desc"** for Descending order.
