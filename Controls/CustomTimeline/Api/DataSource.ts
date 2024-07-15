@@ -81,13 +81,15 @@ export class DataSource {
               const result = await DataSource.Context.webAPI.retrieveMultipleRecords(entity.PrimaryEntity, "?" + query + filter);
               for (const element of result.entities) {
                 let recordData: RecordData = {
-                  entityName: entity.PrimaryEntity
+                  entityName: entity.PrimaryEntity,
+                  entityDisplayName: entityName,
                 };
                 entity.FieldMapping === null || entity.FieldMapping === void 0 ? void 0 : entity.FieldMapping.forEach(Mapping => {
                   recordData[Mapping.TargetField] = element[Mapping.SourceField];
                 });
                 if(entity.IsActivity) {
                   recordData["entityName"] = element["activitytypecode"];
+                  recordData["entityDisplayName"] = element["activitytypecode"];
                 }
                 recordsData.push(recordData);
               }
@@ -122,7 +124,6 @@ export class DataSource {
       if(index < ItemsToDisplay) {
         UpdatedRecords.push({
             key: (item["entityName"] + '_Record_' + item["id"]),
-            //personaImage: 'Database',
             FooterCollapsed: false,
             Header: [{ type: 'Text', variant:'medium', content: ('Record Date: ' + item["createdOn"]), sequence: 1, isBold: true }],
             Body: [{ type: 'Text', content: item["name"], sequence: 1 }, { type: 'Text', content: item["other"], sequence: 2 }],

@@ -67,7 +67,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
 
     // Define styles for setting css attributes
     timelineStackStyles: IStackStyles = { root: { padding: '10px', height: '100%', overflowY: 'auto' } };
-    filterStackStyles: IStackStyles = { root: { width: '15%', border: '1px solid #ccc', padding: '10px', borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px', backgroundColor: '#f9f9f9', marginRight: '10px', height: '55vh' } };
+    filterStackStyles: IStackStyles = { root: { width: '15%', border: '1px solid #ccc', padding: '10px', borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px', backgroundColor: '#f9f9f9', marginRight: '10px', height: '50vh' } };
     parentStackStyles: IStackStyles = { root: { border: '1px solid #ccc', padding: '10px', borderRadius: '4px' }};
     timelineTitleTextStyles: IStackStyles = { root: { paddingLeft: '5px', fontWeight: 'bold', fontFamily: '"SegoeUI-Semibold", "Segoe UI Semibold", "Segoe UI Regular", "Segoe UI"' } };
     searchboxStyles: IStackStyles = { root: { border: '1px solid #ccc', borderRadius: '4px', backgroundColor: 'rgb(245, 245, 245)' } };
@@ -124,9 +124,9 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                             UseCalendarMonth={ this.state.SearchProps.DateRange.UseCalendarMonth } UpdateSelectedMonths={ this.UpdateSelectedMonthsForSearch }></DateFilterPanel>
                         </Stack>)}
                         <Stack tokens={{ childrenGap: 2 }} grow onScroll={ this.HandleRecordListScroll } key={ 'stack_record_list' }
-                            styles={ { root: { border: '1px solid #ccc', borderRadius: '4px', padding: '15px', overflowY: 'auto', minHeight: '55vh', maxHeight: '55vh' } }}>
+                            styles={ { root: { border: '1px solid #ccc', borderRadius: '4px', padding: '15px', overflowY: 'auto', minHeight: '50vh', maxHeight: '50vh' } }}>
                                 {this.state.Records.length > 0 && this.state.Records.map((item) => (
-                                    <RecordCard Key={ item.Key } PersonaImage={ item.PersonaImage } FooterCollapsed={ this.state.ShowHideFooter } Header={ item.Header } Body={ item.Body } Footer={ item.Footer } ConfigData={ this.state.CommandbarConfigData } Record={ item.Record }></RecordCard>
+                                    <RecordCard Key={ item.Key } PersonaImage={ item.PersonaImage } PersonaColorCodes={ this.state.ControlModel.PersonaColorCodes } FooterCollapsed={ this.state.ShowHideFooter } Header={ item.Header } Body={ item.Body } Footer={ item.Footer } ConfigData={ this.state.CommandbarConfigData } Record={ item.Record }></RecordCard>
                                 ))}
                                 <Stack>
                                     {this.state.HasMoreItems && (

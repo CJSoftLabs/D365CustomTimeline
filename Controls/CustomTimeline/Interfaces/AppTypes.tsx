@@ -63,6 +63,7 @@ export interface CommandBarConfigItem {
 export interface RecordCardProps {
     Key: string,
     PersonaImage?: string,
+    PersonaBackgroundValue?: number,
     Header: ConfigItem[];
     Body: ConfigItem[];
     Footer: ConfigItem[];
@@ -70,6 +71,7 @@ export interface RecordCardProps {
     ConfigData: CommandBarConfigItem[];
     FooterCollapsed?: boolean;
     Record: any;
+    PersonaColorCodes: any[];
 }
 
 export interface MonthGroup {
@@ -114,6 +116,7 @@ export interface AppModel {
     Fields?: string[];
     UiTemplate: any;
     Entities: EntityModel[];
+    PersonaColorCodes: any[];
 }
 
 export interface RecordData {

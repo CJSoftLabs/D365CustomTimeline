@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Text, Icon, Link, Label, Stack, IStackTokens, IStackStyles, IButtonStyles, Persona, PersonaSize, CommandBar, ITextStyles, IFontStyles, IconButton, ICommandBarItemProps } from '@fluentui/react';
+import { Text, Icon, Link, Label, Stack, IStackTokens, IStackStyles, IButtonStyles, Persona, PersonaSize, CommandBar, ITextStyles, IFontStyles, IconButton, ICommandBarItemProps, PersonaPresence, PersonaInitialsColor } from '@fluentui/react';
 import { RecordCardProps, ConfigItem, ParameterizedTarget } from '../../Interfaces/AppTypes';
 import { DataSource } from '../../Api/DataSource';
 
@@ -14,10 +14,12 @@ export class RecordCard extends React.Component<RecordCardProps, RecordCardProps
       buttonStyles: this.commandbarButtonStyles,
       onClick: () => this.HandleCommandClick(item.OperationType, item.Url),
     }));
+    const entity = this.props.PersonaColorCodes.find(item => item.EntityName === this.props.Record["entityDisplayName"]);
 
     this.state = {
       Key: this.props.Key,
       PersonaImage: this.props.PersonaImage,
+      PersonaBackgroundValue: (entity ? entity.ColorCode : 0),
       Header: this.props.Header,
       Body: this.props.Body,
       Footer: this.props.Footer,
@@ -25,6 +27,7 @@ export class RecordCard extends React.Component<RecordCardProps, RecordCardProps
       ConfigData: this.props.ConfigData,
       CommandbarItems: commandBarItems,
       Record: this.props.Record,
+      PersonaColorCodes: this.props.PersonaColorCodes,
     }
     this.ToggleFooterCollapse = this.ToggleFooterCollapse.bind(this);
     this.HandleCommandClick = this.HandleCommandClick.bind(this);
@@ -50,12 +53,6 @@ export class RecordCard extends React.Component<RecordCardProps, RecordCardProps
             if (param.Type === "Parameter" && this.state.Record) {
                 value = this.state.Record[param.Variable];
             }
-            // else if (param.Type === "SearchProperty" && searchProps) {
-            //   value = DataSource.GetValue(searchProps, param.Variable);
-            //   if(param.IsDateValue) {
-            //     value = new Date(value).toISOString();
-            //   }
-            // }
             targetUrl = targetUrl.replace(placeholder, (value ?? ''));
           });
           DataSource.Context.navigation.openUrl(targetUrl);
@@ -125,11 +122,14 @@ export class RecordCard extends React.Component<RecordCardProps, RecordCardProps
         <Stack horizontal key={ this.state.Key }>
             <Stack verticalAlign='center' horizontalAlign='center' styles={ { root: { width: '50px', marginLeft: '30px' } } }>
               <Persona
-                imageUrl= {this.state.PersonaImage}
+                //imageUrl= {this.state.PersonaImage}
                 size={ PersonaSize.size56 }
+                presence={PersonaPresence.none}
+                initialsColor={this.state.PersonaBackgroundValue}
+                imageInitials={(this.state.Record["entityDisplayName"].length > 0) ? this.state.Record["entityDisplayName"].toUpperCase().charAt(0) : 'R' }
                 // imageUrl={undefined} // Ensure imageUrl is null or undefined
                 // onRenderInitials={() => (
-                //   <Icon iconName={this.state.personaImage} style={{ fontSize: 32 }} />
+                //   <Icon iconName={this.state.PersonaImage} style={{ fontSize: 32 }} />
                 // )}
               ></Persona>
             </Stack>
