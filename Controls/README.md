@@ -1,3 +1,7 @@
+**------------------------------
+Custom Timeline Configurations
+------------------------------**
+
 **TimelineProps:** Top Object holding the config for the Custom D365 Timeline
   - **Attributes:**
     - **FilterPanelVisible:** Boolean value indicating the default visibility of the Filter Panel (Left side panel).
