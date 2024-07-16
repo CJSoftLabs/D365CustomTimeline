@@ -23,6 +23,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
             Context: this.props.Context,
             ControlModel: this.props.ControlModel,
             CommandbarConfigData: this.props.CommandbarConfigData,
+            PanelHeight: this.props.PanelHeight,
         };
 
         DataSource.Context = this.state.Context;
@@ -67,7 +68,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
 
     // Define styles for setting css attributes
     timelineStackStyles: IStackStyles = { root: { padding: '10px', height: '100%', overflowY: 'auto' } };
-    filterStackStyles: IStackStyles = { root: { width: '15%', border: '1px solid #ccc', padding: '10px', borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px', backgroundColor: '#f9f9f9', marginRight: '10px', height: '50vh' } };
+    filterStackStyles: IStackStyles = { root: { width: '15%', border: '1px solid #ccc', padding: '10px', borderTopLeftRadius: '4px', borderBottomLeftRadius: '4px', backgroundColor: '#f9f9f9', marginRight: '10px', height: `${ this.props.PanelHeight }` } };
     parentStackStyles: IStackStyles = { root: { border: '1px solid #ccc', padding: '10px', borderRadius: '4px' }};
     timelineTitleTextStyles: IStackStyles = { root: { paddingLeft: '5px', fontWeight: 'bold', fontFamily: '"SegoeUI-Semibold", "Segoe UI Semibold", "Segoe UI Regular", "Segoe UI"' } };
     searchboxStyles: IStackStyles = { root: { border: '1px solid #ccc', borderRadius: '4px', backgroundColor: 'rgb(245, 245, 245)' } };
@@ -122,10 +123,11 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                     <Stack horizontal>
                         {this.state.FilterPanelVisible && (<Stack styles={ this.filterStackStyles }>
                             <DateFilterPanel StartDate={ this.state.SearchProps.DateRange.StartDate } EndDate={ this.state.SearchProps.DateRange.EndDate } SelectedMonths={ this.state.SearchProps.DateRange.SelectedMonths }
-                            UseCalendarMonth={ this.state.SearchProps.DateRange.UseCalendarMonth } UpdateSelectedMonths={ this.UpdateSelectedMonthsForSearch }></DateFilterPanel>
+                            StartDateAllowedYears={ this.state.SearchProps.DateRange.StartDateAllowedYears } UseCalendarMonth={ this.state.SearchProps.DateRange.UseCalendarMonth }
+                            UpdateSelectedMonths={ this.UpdateSelectedMonthsForSearch }></DateFilterPanel>
                         </Stack>)}
                         <Stack tokens={{ childrenGap: 2 }} grow onScroll={ this.HandleRecordListScroll } key={ 'stack_record_list' }
-                            styles={ { root: { border: '1px solid #ccc', borderRadius: '4px', padding: '15px', overflowY: 'auto', minHeight: '50vh', maxHeight: '50vh' } }}>
+                            styles={ { root: { border: '1px solid #ccc', borderRadius: '4px', padding: '15px', overflowY: 'auto', minHeight: `${ this.props.PanelHeight }`, maxHeight: `${ this.props.PanelHeight }` } }}>
                                 {this.state.Records.length > 0 && this.state.Records.map((item) => (
                                     <RecordCard Key={ item.Key } PersonaColorCodes={ this.state.ControlModel.PersonaColorCodes } FooterCollapsed={ this.state.ShowHideFooter } RecordUiTemplate={ this.state.ControlModel.RecordUiTemplate } ConfigData={ this.state.CommandbarConfigData } Record={ item.Record }></RecordCard>
                                 ))}
@@ -315,9 +317,9 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
             SearchProps: {
                 ...prevState.SearchProps,
                 DateRange: {
+                    ...prevState.SearchProps.DateRange,
                     StartDate: startDate,
                     EndDate: endDate,
-                    UseCalendarMonth: prevState.SearchProps.DateRange.UseCalendarMonth
                 },
                 SelectedRecordTypes: recordTypes,
                 SelectedDuration: selectedDuration
@@ -374,10 +376,13 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                 ...prevState.SearchProps,
                 //SelectedMonths: SelectedMonths
                 DateRange: {
-                    StartDate: prevState.SearchProps.DateRange.StartDate,
-                    EndDate: prevState.SearchProps.DateRange.EndDate,
-                    SelectedMonths: SelectedMonths,
-                    UseCalendarMonth: prevState.SearchProps.DateRange.UseCalendarMonth
+                    ...prevState.SearchProps.DateRange,
+                    SelectedMonths: SelectedMonths
+                    // StartDate: prevState.SearchProps.DateRange.StartDate,
+                    // EndDate: prevState.SearchProps.DateRange.EndDate,
+                    // SelectedMonths: SelectedMonths,
+                    // UseCalendarMonth: prevState.SearchProps.DateRange.UseCalendarMonth,
+                    // StartDateAllowedYears: prevState.SearchProps.DateRange.StartDateAllowedYears,
                 }
             },
             HasMoreItems: false,

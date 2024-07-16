@@ -8,6 +8,7 @@ Custom Timeline Configurations
     - **ItemsToDisplay:** Number value indicating the count of records to be appended to the list of visible Record cards.
     - **NoRecordsText:** Text which will be displayed when there are no results due to a search or a filter.
     - **ShowHideFooter:** Boolean value indicating the default state of the footer of the Record card.
+    - **PanelHeight:** Height value for the Panels over which it overflows. The default value used is 50vh.
     - **CommandbarConfigData:** Array of Object for mapping the Commands in each of the Record card.
       - **Attributes:**
         - **IconName:** FluentUI Icon to be displayed.
@@ -60,6 +61,7 @@ Custom Timeline Configurations
           - **Attributes:**
             - **StartDate:** Start date used for the search functionality. Always limited to the current date as its end date and appropriate start date based on the **SelectedDuration** attribute.
             - **EndDate:** End date used for the search functionality. Always limited to the current date as its end date.
+            - **StartDateAllowedYears:** Number of years allowed for the start date from current date. Default value used in the config is 3.
             - **UseCalendarMonth:** Boolean variable used to indicate the type of date range to be used. If set to **false**, it will take the end date as current date and the start date as **current date - X Months** (based on selection). If set to **true**, it will set the end date as the current date and end date as **1st of the current date - (X-1) Months**.
         - **DurationChoices:** Key-Text pair used to set the **Duration field in the Search Panel**. Currently the values in the config includes **"3m"-"Last 3 Months", "6m"-"Last 6 Months", "9m"-"Last 9 Months" & Custom date range**.
         - **RecordTypes:** Key-Text pair used to set the **Record Type field in the Search Panel**.

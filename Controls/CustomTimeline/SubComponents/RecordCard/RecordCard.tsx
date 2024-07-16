@@ -103,21 +103,21 @@ export class RecordCard extends React.Component<RecordCardProps, RecordCardProps
         switch (item.type) {
           case 'Text':
             return (
-              <Text key={index} styles={combinedStyles} variant={ item.variant  as keyof IFontStyles | undefined }>
+              <Text key={ this.state.Key + "_Text_" + index } styles={combinedStyles} variant={ item.variant  as keyof IFontStyles | undefined }>
                 {content}
               </Text>
             );
           case 'Icon':
-            return <Icon key={index} iconName={item.iconName || ''} />;
+            return <Icon key={this.state.Key + "_Icon_" + index} iconName={item.iconName || ''} />;
           case 'Link':
             return (
-              <Link key={index} href={item.url} styles={combinedStyles}>
+              <Link key={this.state.Key + "_Link_" + index} href={item.url} styles={combinedStyles}>
                 {content}
               </Link>
             );
           case 'Label':
             return (
-              <Label key={index} styles={combinedStyles}>
+              <Label key={this.state.Key + "_Label_" + index} styles={combinedStyles}>
                 {content}
               </Label>
             );
@@ -129,9 +129,10 @@ export class RecordCard extends React.Component<RecordCardProps, RecordCardProps
 
   render() {
     return (
-        <Stack horizontal key={ this.state.Key }>
-            <Stack verticalAlign='center' horizontalAlign='center' styles={ { root: { width: '50px', marginLeft: '30px' } } }>
+        <Stack horizontal key={ this.state.Key + "_Record" }>
+            <Stack key={ this.state.Key + "_Persona_Stack" } verticalAlign='center' horizontalAlign='center' styles={ { root: { width: '50px', marginLeft: '30px' } } }>
               <Persona
+                key={ this.state.Key + "_Persona" } 
                 size={ PersonaSize.size56 }
                 presence={PersonaPresence.none}
                 initialsColor={this.state.PersonaBackgroundValue}
@@ -142,35 +143,35 @@ export class RecordCard extends React.Component<RecordCardProps, RecordCardProps
                 // )}
               ></Persona>
             </Stack>
-            <Stack tokens={ this.cardStackTokens } grow styles={ this.cardStackStyles }>
-              <Stack horizontal styles={ this.genericTextStyles }>
+            <Stack tokens={ this.cardStackTokens } grow styles={ this.cardStackStyles } key={ this.state.Key + "_Card_Stack" } >
+              <Stack horizontal styles={ this.genericTextStyles } key={ this.state.Key + "_Header_Stack" }>
                 {/* Header */}
-                <Stack horizontal grow verticalAlign='center'>
+                <Stack horizontal grow verticalAlign='center' key={ this.state.Key + "_Header_Content_Stack" }>
                   {this.renderConfigItems(this.state.RecordUiTemplate.Header || [], false)}
                 </Stack>
                 {/* CommandBar */}
-                <Stack horizontalAlign='end'>
+                <Stack horizontalAlign='end' key={ this.state.Key + "_Header_Commandbar_Stack" }>
                   {this.state.CommandbarItems && <CommandBar items={this.state.CommandbarItems}></CommandBar> }
                 </Stack>
               </Stack>
               {/* Body */}
-              <Stack styles={ this.genericTextStyles }>
+              <Stack styles={ this.genericTextStyles } key={ this.state.Key + "_Body_Content_Stack" }>
                 {this.renderConfigItems(this.state.RecordUiTemplate.Body || [], true)}
               </Stack>
               {/* Footer */}
               {(this.state.RecordUiTemplate.Footer || []).length > 0 && (
-                <Stack>
-                  <Stack horizontal verticalAlign="center" styles={ this.genericTextStyles }>
-                    {!this.state.FooterCollapsed && <Stack>{this.renderConfigItems(this.state.RecordUiTemplate.Footer || [], true)}</Stack>}
+                <Stack key={ this.state.Key + "_Footer_Stack" }>
+                  <Stack horizontal verticalAlign="center" styles={ this.genericTextStyles } key={ this.state.Key + "_Footer_Content_Stack" }>
+                    {!this.state.FooterCollapsed && <Stack key={ this.state.Key + "_Footer_Inner_Content_Stack" }>{this.renderConfigItems(this.state.RecordUiTemplate.Footer || [], true)}</Stack>}
                   </Stack>
-                  <Stack horizontal onClick={ this.ToggleFooterCollapse } styles={ this.footerTextStylesCollapse }>
-                    <Stack grow verticalAlign='center'>
-                      <Link>
+                  <Stack horizontal onClick={ this.ToggleFooterCollapse } styles={ this.footerTextStylesCollapse } key={ this.state.Key + "_Footer_Toggler_Stack" }>
+                    <Stack grow verticalAlign='center' key={ this.state.Key + "_Footer_View_Less_More_Stack" }>
+                      <Link key={ this.state.Key + "_Footer_View_Less_More_Link" }>
                         {!this.state.FooterCollapsed ? "View Less" : "View More"}
                       </Link>
                     </Stack>
-                    <Stack horizontalAlign='end' verticalAlign='center'>
-                      <IconButton
+                    <Stack horizontalAlign='end' verticalAlign='center' key={ this.state.Key + "_Footer_Icon_Stack" }>
+                      <IconButton key={ this.state.Key + "_Footer_Icon_IconButton" }
                         iconProps={{ iconName: this.state.FooterCollapsed ? 'ChevronDown' : 'ChevronUp' }}
                         ariaLabel={this.state.FooterCollapsed ? 'Expand Footer' : 'Collapse Footer'}
                         onClick={this.ToggleFooterCollapse}

@@ -22,6 +22,7 @@ export class DateRangePicker extends React.Component<DateRangeProps, DateRangePr
       StartDate: this.props.StartDate,
       EndDate: this.props.EndDate,
       UpdateDateFields: this.props.UpdateDateFields,
+      StartDateAllowedYears: this.props.StartDateAllowedYears,
     };
   }
 
@@ -39,7 +40,7 @@ export class DateRangePicker extends React.Component<DateRangeProps, DateRangePr
   render() {
     const currentDate = new Date();
     const minDate = new Date();
-    minDate.setFullYear(currentDate.getFullYear() - 3);
+    minDate.setFullYear(currentDate.getFullYear() - this.state.StartDateAllowedYears);
 
     return (
       <Stack horizontal tokens={this.stackTokens} styles={ this.stackStyles }>

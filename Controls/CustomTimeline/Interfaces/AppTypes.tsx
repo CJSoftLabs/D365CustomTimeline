@@ -16,11 +16,13 @@ export interface TimelineProps {
     Context: ComponentFramework.Context<IInputs>;
     ControlModel: AppModel;
     CommandbarConfigData: CommandBarConfigItem[];
+    PanelHeight: string;
 }
 
 export interface DateRangeProps {
     StartDate: Date;
     EndDate: Date;
+    StartDateAllowedYears: number,
     UseCalendarMonth?: boolean;
     SelectedMonths?: any;
     CollapsedYears?: any;
@@ -64,9 +66,6 @@ export interface RecordCardProps {
     Key: string;
     PersonaBackgroundValue?: number;
     RecordUiTemplate: UiTemplate;
-    // Header: ConfigItem[];
-    // Body: ConfigItem[];
-    // Footer: ConfigItem[];
     CommandbarItems?: ICommandBarItemProps[];
     ConfigData: CommandBarConfigItem[];
     FooterCollapsed?: boolean;
