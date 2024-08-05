@@ -1,4 +1,4 @@
-import { IChoiceGroupOption, ICommandBarItemProps, IDropdownOption } from "@fluentui/react";
+import { IChoiceGroupOption, IColumn, ICommandBarItemProps, IDropdownOption } from "@fluentui/react";
 import { IInputs } from "../generated/ManifestTypes";
 
 export interface TimelineProps {
@@ -17,11 +17,16 @@ export interface TimelineProps {
     ControlModel: AppModel;
     CommandbarConfigData: CommandBarConfigItem[];
     PanelHeight: string;
+    ControlType: string;
+    GridSortEnabled: boolean;
+    ColumnDetails?: GridColumn[];
+    GridColumns?: IColumn[];
 }
 
 export interface DateRangeProps {
     StartDate: Date;
     EndDate: Date;
+    SortDirection: string;
     StartDateAllowedYears: number,
     UseCalendarMonth?: boolean;
     SelectedMonths?: any;
@@ -37,7 +42,7 @@ export interface SearchProps {
     SelectedDuration: string;
     SearchPanelVisible: boolean;
     DateRange: DateRangeProps;
-    SortDirection: string,
+    SortDirection: string;
     TimelineSearch?: string;
     SearchFields: string[];
     Close?: () => void;
@@ -109,6 +114,8 @@ export interface DynamicParameter {
 export interface EntityFieldMapping {
     SourceField: string;
     TargetField: string;
+    IsDateValue?: boolean;
+    DateFormat?: string;
 }
 
 export interface AppModel {
@@ -127,4 +134,19 @@ export interface UiTemplate {
     Header: ConfigItem[];
     Body: ConfigItem[];
     Footer: ConfigItem[];
+}
+
+export interface GridColumn {
+    FieldName: string;
+    Header: string;
+    MinWidth: number;
+    MaxWidth: number;
+    AriaLabel: string;
+    IsSorted?: boolean;
+    IsSortedDescending?: boolean;
+    SortAscendingAriaLabel: string;
+    SortDescendingAriaLabel: string;
+    DataType: string;
+    Data: ParameterizedTarget;
+    Url:  ParameterizedTarget;
 }

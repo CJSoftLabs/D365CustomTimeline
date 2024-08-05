@@ -31,6 +31,20 @@ export class DataSource {
     return { year: parseInt(year, 10), month: DataSource.GetMonthIndex(month) };
   }
 
+  static async FormatDate(date: Date, format: string) {
+    const map: { [key: string]: string | number } = {
+      YYYY: date.getFullYear(),
+      MM: String(date.getMonth() + 1).padStart(2, '0'),
+      DD: String(date.getDate()).padStart(2, '0'),
+      HH: String(date.getHours()).padStart(2, '0'),
+      mm: String(date.getMinutes()).padStart(2, '0'),
+      ss: String(date.getSeconds()).padStart(2, '0'),
+      //'ss.ms': String(date.getMilliseconds()).padStart(3, '0')
+    };
+  
+    return format.replace(/YYYY|MM|DD|HH|mm|ss/g, (matched) => String(map[matched]));
+  }
+
   static async FetchData(entityList: EntityModel[], searchProps: SearchProps, sortDirection: string, itemsToDisplay: number) {
     //Called when,
     //1) The control is loaded (or)
@@ -84,8 +98,12 @@ export class DataSource {
                   entityName: entity.PrimaryEntity,
                   entityDisplayName: entityName,
                 };
-                entity.FieldMapping === null || entity.FieldMapping === void 0 ? void 0 : entity.FieldMapping.forEach(Mapping => {
-                  recordData[Mapping.TargetField] = element[Mapping.SourceField];
+                entity.FieldMapping === null || entity.FieldMapping === void 0 ? void 0 : entity.FieldMapping.forEach(async Mapping => {
+                  if(Mapping.IsDateValue ?? false) {
+                    recordData[Mapping.TargetField] = await DataSource.FormatDate(new Date(element[Mapping.SourceField].toString()), Mapping.DateFormat ?? 'DD-MM-YYYY HH:mm:ss');
+                  } else {
+                    recordData[Mapping.TargetField] = element[Mapping.SourceField];
+                  }
                 });
                 if(entity.IsActivity) {
                   recordData["entityName"] = element["activitytypecode"];

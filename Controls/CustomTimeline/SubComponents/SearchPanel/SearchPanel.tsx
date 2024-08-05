@@ -63,7 +63,7 @@ export class SearchPanel extends React.Component<SearchProps, SearchProps>{
                         <ChoiceGroup options={this.state.DurationChoices} onChange={this.onDurationChange} defaultSelectedKey={this.props.SelectedDuration}></ChoiceGroup>
                         {this.state.SelectedDuration === 'custom' &&
                             (<Stack horizontalAlign='center'>
-                                <DateRangePicker StartDate={ this.state.DateRange.StartDate } EndDate={ this.state.DateRange.EndDate } StartDateAllowedYears={ this.state.DateRange.StartDateAllowedYears } UpdateDateFields={ this.UpdateCustomDates }></DateRangePicker>
+                                <DateRangePicker StartDate={ this.state.DateRange.StartDate } EndDate={ this.state.DateRange.EndDate } StartDateAllowedYears={ this.state.DateRange.StartDateAllowedYears } UpdateDateFields={ this.UpdateCustomDates } SortDirection=""></DateRangePicker>
                             </Stack>
                             )
                         }
@@ -109,7 +109,7 @@ export class SearchPanel extends React.Component<SearchProps, SearchProps>{
             } else {
                 sDate.setMonth(sDate.getMonth() - +(value.replace('m', '')));
             }
-            this.setState({ DateRange: { StartDate: sDate, EndDate: new Date(), UseCalendarMonth: this.state.DateRange.UseCalendarMonth, StartDateAllowedYears: this.state.DateRange.StartDateAllowedYears } });
+            this.setState({ DateRange: { StartDate: sDate, EndDate: new Date(), UseCalendarMonth: this.state.DateRange.UseCalendarMonth, StartDateAllowedYears: this.state.DateRange.StartDateAllowedYears, SortDirection: this.state.DateRange.SortDirection } });
         }
     }
 
@@ -119,7 +119,7 @@ export class SearchPanel extends React.Component<SearchProps, SearchProps>{
     }
 
     UpdateCustomDates(StartDate: Date, EndDate: Date): void {
-        this.setState({ DateRange: { StartDate: StartDate, EndDate: EndDate, UseCalendarMonth: this.state.DateRange.UseCalendarMonth, StartDateAllowedYears: this.state.DateRange.StartDateAllowedYears } });
+        this.setState({ DateRange: { StartDate: StartDate, EndDate: EndDate, UseCalendarMonth: this.state.DateRange.UseCalendarMonth, StartDateAllowedYears: this.state.DateRange.StartDateAllowedYears, SortDirection: this.state.DateRange.SortDirection } });
     }
 
     SearchClick(): void {

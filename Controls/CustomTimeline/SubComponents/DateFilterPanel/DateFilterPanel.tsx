@@ -14,6 +14,7 @@ export class DateFilterPanel extends React.Component<DateRangeProps, DateRangePr
             UseCalendarMonth: this.props.UseCalendarMonth,
             UpdateSelectedMonths: this.props.UpdateSelectedMonths,
             StartDateAllowedYears: this.props.StartDateAllowedYears,
+            SortDirection: this.props.SortDirection
         };
 
         this.onCheckboxChange = this.onCheckboxChange.bind(this);
@@ -82,11 +83,13 @@ export class DateFilterPanel extends React.Component<DateRangeProps, DateRangePr
     }
 
     componentDidUpdate(prevProps: DateRangeProps) {
-      if ((prevProps.StartDate !== this.props.StartDate) || (prevProps.EndDate !== this.props.EndDate) || (prevProps.SelectedMonths !== this.props.SelectedMonths)) {
+      if ((prevProps.StartDate !== this.props.StartDate) || (prevProps.EndDate !== this.props.EndDate) || (prevProps.SelectedMonths !== this.props.SelectedMonths)
+        || (prevProps.SortDirection !== this.props.SortDirection)) {
         this.setState(() => ({
           StartDate: this.props.StartDate,
           EndDate: this.props.EndDate,
           SelectedMonths: this.props.SelectedMonths,
+          SortDirection: this.props.SortDirection,
           CollapsedYears: {},
         }));
       }
@@ -102,6 +105,9 @@ export class DateFilterPanel extends React.Component<DateRangeProps, DateRangePr
 
     render() {
         const monthGroups = this.GenerateMonthGroups(this.state.StartDate, this.state.EndDate);
+        if(this.state.SortDirection === "desc") {
+          monthGroups.sort((a, b) => b.year - a.year);
+        }
 
         return(
             <Stack tokens={this.stackTokens} className={this.contentStyles}>

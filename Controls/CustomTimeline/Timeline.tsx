@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Stack, Text, SearchBox, IconButton, IContextualMenuProps, IStackTokens, IStackStyles, IIconProps, Spinner, Modal, SpinnerSize, Link, List } from '@fluentui/react';
+import { Stack, Text, SearchBox, IconButton, IContextualMenuProps, IStackTokens, IStackStyles, IIconProps, Spinner, Modal, SpinnerSize, Link, List, DetailsList, SelectionMode, DetailsListLayoutMode, mergeStyleSets, IColumn, MarqueeSelection, TooltipHost } from '@fluentui/react';
 import { RecordCard } from './SubComponents/RecordCard/RecordCard';
 import { SearchPanel } from './SubComponents/SearchPanel/SearchPanel';
 import { TimelineData, TimelineProps } from './Interfaces/AppTypes';
@@ -9,6 +9,59 @@ import { DataSource } from './Api/DataSource';
 export class Timeline extends React.Component<TimelineProps, TimelineProps> {
     constructor(props: TimelineProps) {
         super(props);
+        let GridColumnItems: IColumn[] = [];
+        this.props.ColumnDetails?.forEach(x => {
+            GridColumnItems.push(
+                {
+                    key: ("column" + x.FieldName),
+                    fieldName: x.FieldName,
+                    name: x.Header,
+                    minWidth: x.MinWidth,
+                    maxWidth: x.MaxWidth,
+                    isRowHeader: true,
+                    isResizable: true,
+                    ariaLabel: x.AriaLabel,
+                    isSorted: (props.GridSortEnabled && x.IsSorted),
+                    isSortedDescending: x.IsSortedDescending,
+                    sortAscendingAriaLabel: x.SortAscendingAriaLabel,
+                    sortDescendingAriaLabel: x.SortDescendingAriaLabel,
+                    data: x.DataType,
+                    isPadded: true,
+                    onColumnClick: this.OnColumnClick,
+                    onRender: (item: any) => {
+                        let value = x.Data.Target;
+                        x.Data.Parameters.forEach((param: any) => {
+                          const placeHolder = `{${param.Sequence}}`;
+                          let replacementValue = '';
+                          if (param.Type === "Parameter") {
+                            replacementValue = item["Record"][param.Variable];
+                          }
+                          value = value.replace(placeHolder, (replacementValue ?? ''));
+                        });
+
+                        let targetUrl = '';
+                        if(x.Url){
+                            targetUrl = x.Url.Target;
+                            x.Url.Parameters.forEach(param => {
+                                const placeholder = `{${param.Sequence}}`;
+                                let value = '';
+                                if (param.Type === "Parameter") {
+                                    value = item["Record"][param.Variable];
+                                }
+                                targetUrl = targetUrl.replace(placeholder, (value ?? ''));
+                            });
+                        }
+                        return (
+                            <TooltipHost content={value}>
+                                {
+                                    x.Url ? (<Link href={targetUrl} target='_blank'>{value}</Link>) : (<span>{value}</span>)
+                                }
+                            </TooltipHost>);
+                    },
+                }
+            );
+        });
+
         this.state = {
             SearchProps: this.props.SearchProps,
             FilterPanelVisible: this.props.FilterPanelVisible,
@@ -24,6 +77,9 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
             ControlModel: this.props.ControlModel,
             CommandbarConfigData: this.props.CommandbarConfigData,
             PanelHeight: this.props.PanelHeight,
+            ControlType: this.props.ControlType,
+            GridColumns: GridColumnItems,
+            GridSortEnabled: this.props.GridSortEnabled,
         };
 
         DataSource.Context = this.state.Context;
@@ -42,6 +98,62 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
         this.HandleLoadMoreClick = this.HandleLoadMoreClick.bind(this);
         this.HandleRecordListScroll = this.HandleRecordListScroll.bind(this);
     }
+    
+    OnColumnClick = (ev: React.MouseEvent<HTMLElement>, column: IColumn): void => {
+        if(this.state.GridSortEnabled) {
+            const { GridColumns, Records } = this.state;
+            const newColumns: IColumn[] = (GridColumns || []).slice();
+            const currColumn: IColumn = newColumns.filter(currCol => column.key === currCol.key)[0];
+            newColumns.forEach((newCol: IColumn) => {
+            if (newCol === currColumn) {
+                currColumn.isSortedDescending = !currColumn.isSortedDescending;
+                currColumn.isSorted = true;
+            } else {
+                newCol.isSorted = false;
+                newCol.isSortedDescending = true;
+            }
+            });
+
+            const newItems = this.CopyAndSort(Records || [], currColumn.fieldName!, currColumn.isSortedDescending);
+            this.setState({
+                GridColumns: newColumns,
+                Records: newItems,
+            });
+        }
+    };
+
+    
+    // CopyAndSort<T>(items: T[], columnKey: string, isSortedDescending?: boolean): T[] {
+    //     const key = columnKey as keyof T;
+    //     return items.slice(0).sort((a: any, b: any) => ((isSortedDescending ? a[key] < b[key] : a[key] > b[key]) ? 1 : -1));
+    // }
+    CopyAndSort<T>(items: T[], columnKey: string, isSortedDescending: boolean = false): T[] {
+        const key = columnKey as keyof T;
+    
+        return items.slice(0).sort((a: any, b: any) => {
+            const aValue = a["Record"][key];
+            const bValue = b["Record"][key];
+    
+            if (aValue == null || bValue == null) {
+                return 0;
+            }
+    
+            let comparison = 0;
+    
+            if (typeof aValue === 'string' || typeof bValue === 'string') {
+                comparison = aValue.toString().localeCompare(bValue.toString());
+            } else if (typeof aValue === 'number' || typeof bValue === 'number') {
+                comparison = (+aValue) - (+bValue);
+            } else if (aValue instanceof Date || bValue instanceof Date) {
+                comparison = (new Date(aValue.toString())).getTime() - (new Date(bValue.toString())).getTime();
+            } else {
+                comparison = aValue > bValue ? 1 : (aValue < bValue ? -1 : 0);
+            }
+    
+            return isSortedDescending ? -comparison : comparison;
+        });
+    }
+    
 
     sortMenuProps: IContextualMenuProps = {
         items: [
@@ -99,10 +211,19 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                         <Stack horizontal horizontalAlign='end'>
                             <IconButton iconProps={{ iconName: 'FilterSettings' }} title="Search Settings" ariaLabel="Search Settings" onClick={this.ToggleSearchPanelVisibility} />
                             <IconButton iconProps={{ iconName: 'Refresh' }} title="Refresh" ariaLabel="Refresh" onClick={ this.GetTimelineRecords } />
-                            { (this.state.ControlModel.RecordUiTemplate.Footer || []).length > 0 &&
-                            <IconButton iconProps={ this.state.ShowHideFooter ? this.CollapsedIcon : this.ExpandedIcon } title={ this.state.ShowHideFooter ? 'Expand' : 'Collapse' } 
-                            aria-label={ this.state.ShowHideFooter ? 'Expand' : 'Collapse' } onClick={ this.ToggleFooterVisibility } /> }
-                            <IconButton iconProps={{ iconName: 'Sort' }} title="Sort" ariaLabel="Sort" menuProps={this.sortMenuProps} />
+                            {
+                                (this.state.ControlType.toLowerCase() !== "grid") && 
+                                (
+                                    <>
+                                        {
+                                            (this.state.ControlModel.RecordUiTemplate.Footer || []).length > 0 &&
+                                            <IconButton iconProps={ this.state.ShowHideFooter ? this.CollapsedIcon : this.ExpandedIcon } title={ this.state.ShowHideFooter ? 'Expand' : 'Collapse' } 
+                                                aria-label={ this.state.ShowHideFooter ? 'Expand' : 'Collapse' } onClick={ this.ToggleFooterVisibility } />
+                                        }
+                                        <IconButton iconProps={{ iconName: 'Sort' }} title="Sort" ariaLabel="Sort" menuProps={this.sortMenuProps} />
+                                    </>
+                                )
+                            }
                         </Stack>
                     </Stack>
                     {/* <Stack>
@@ -124,13 +245,33 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                         {this.state.FilterPanelVisible && (<Stack styles={ this.filterStackStyles }>
                             <DateFilterPanel StartDate={ this.state.SearchProps.DateRange.StartDate } EndDate={ this.state.SearchProps.DateRange.EndDate } SelectedMonths={ this.state.SearchProps.DateRange.SelectedMonths }
                             StartDateAllowedYears={ this.state.SearchProps.DateRange.StartDateAllowedYears } UseCalendarMonth={ this.state.SearchProps.DateRange.UseCalendarMonth }
-                            UpdateSelectedMonths={ this.UpdateSelectedMonthsForSearch }></DateFilterPanel>
+                            UpdateSelectedMonths={ this.UpdateSelectedMonthsForSearch } SortDirection={ this.state.SearchProps.SortDirection }></DateFilterPanel>
                         </Stack>)}
                         <Stack tokens={{ childrenGap: 2 }} grow onScroll={ this.HandleRecordListScroll } key={ 'stack_record_list' }
                             styles={ { root: { border: '1px solid #ccc', borderRadius: '4px', padding: '15px', overflowY: 'auto', minHeight: `${ this.props.PanelHeight }`, maxHeight: `${ this.props.PanelHeight }` } }}>
-                                {this.state.Records.length > 0 && this.state.Records.map((item) => (
+                                { (this.state.ControlType.toLowerCase() === "cardcollection") && this.state.Records.length > 0 && this.state.Records.map((item) => (
                                     <RecordCard Key={ item.Key } PersonaColorCodes={ this.state.ControlModel.PersonaColorCodes } FooterCollapsed={ this.state.ShowHideFooter } RecordUiTemplate={ this.state.ControlModel.RecordUiTemplate } ConfigData={ this.state.CommandbarConfigData } Record={ item.Record }></RecordCard>
                                 ))}
+                                {
+                                (this.state.ControlType.toLowerCase() === "grid") && (this.state.Records || []).length > 0 && 
+                                    <Stack>
+                                        <DetailsList
+                                            items={this.state.Records || []}
+                                            columns={this.state.GridColumns}
+                                            selectionMode={SelectionMode.none}
+                                            getKey={this.GetKey}
+                                            setKey="none"
+                                            layoutMode={DetailsListLayoutMode.justified}
+                                            isHeaderVisible={true}
+                                            onRenderDetailsHeader={(props, defaultRender) => (
+                                                <div className={this.classNames.header}>
+                                                {defaultRender ? defaultRender(props):null}
+                                                </div>
+                                            )}
+                                            className={this.classNames.list}
+                                        />
+                                    </Stack>
+                                }
                                 <Stack>
                                     {this.state.HasMoreItems && (
                                         <Link onClick={this.HandleLoadMoreClick} style={{ marginTop: '20px' }}>
@@ -144,11 +285,27 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
                         </Stack>
                     </Stack>
                     <Stack>
-                            <Text>Showing { this.state.Records.length } Records</Text>
-                        </Stack>
+                        <Text>Showing { this.state.Records.length } Records</Text>
+                    </Stack>
                 </Stack>
             </Stack>
         );
+    }
+
+    classNames = mergeStyleSets({
+        header: {
+          position: 'sticky',
+          top: 0,
+          zIndex: 1,
+          backgroundColor: 'white',
+        },
+        list: {
+          overflowY: 'auto',
+        },
+    });
+
+    private GetKey(item: any, index?: number): string {
+        return item["Name"];
     }
 
     componentDidMount() {
@@ -195,6 +352,7 @@ export class Timeline extends React.Component<TimelineProps, TimelineProps> {
         const container = event.target as HTMLDivElement;
         if (container.scrollHeight - container.scrollTop === container.clientHeight) {
           if (this.state.HasMoreItems && this.state.StartedToLoad) {
+            container.scrollTop = container.scrollTop - 10;
             this.LoadMoreItems();
           }
         }

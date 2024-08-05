@@ -23,6 +23,7 @@ export class DateRangePicker extends React.Component<DateRangeProps, DateRangePr
       EndDate: this.props.EndDate,
       UpdateDateFields: this.props.UpdateDateFields,
       StartDateAllowedYears: this.props.StartDateAllowedYears,
+      SortDirection: this.props.SortDirection,
     };
   }
 
